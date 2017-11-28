@@ -92,7 +92,6 @@ public final class CheckoutViewModel: CheckoutViewModelType {
 
   fileprivate let checkoutRacingViewModel: CheckoutRacingViewModelType = CheckoutRacingViewModel()
 
-    // swiftlint:disable cyclomatic_complexity
   public init() {
     let configData = self.configDataProperty.signal.skipNil()
       .takeWhen(self.viewDidLoadProperty.signal)
@@ -325,8 +324,6 @@ public final class CheckoutViewModel: CheckoutViewModelType {
         )
     }
   }
-  // swiftlint:enable cyclomatic_complexity
-  // swiftlint:enable function_body_length
 
   fileprivate let cancelButtonTappedProperty = MutableProperty()
   public func cancelButtonTapped() { self.cancelButtonTappedProperty.value = () }
@@ -446,7 +443,7 @@ private func applePayCheckoutNextJS(forPaymentData paymentData: PaymentData, str
 
     let tokenData = paymentData.tokenData
 
-    var json: [String:[String:String]] = [:]
+    var json: [String: [String: String]] = [:]
 
     json["apple_pay_token"] = [:]
     json["apple_pay_token"]?["transaction_identifier"] = tokenData.transactionIdentifier
@@ -470,7 +467,7 @@ private func paymentRequest(fromBase64Payload payload: String) -> PKPaymentReque
 
 private func prepared(request baseRequest: URLRequest, applePayCapable: Bool) -> URLRequest {
 
-  var applePayHeader: [String:String] = [:]
+  var applePayHeader: [String: String] = [:]
   applePayHeader["Kickstarter-Apple-Pay"] = applePayCapable ? "1" : nil
 
   var request = AppEnvironment.current.apiService.preparedRequest(forRequest: baseRequest)

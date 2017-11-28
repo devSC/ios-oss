@@ -25,9 +25,6 @@ public protocol DiscoveryNavigationHeaderViewModelOutputs {
   /// Emits to animate arrow image down or up.
   var animateArrowToDown: Signal<Bool, NoError> { get }
 
-  /// Emits a Bool to animate the border line when expanded or collapsed.
-  var animateBorderLineViewAndIsExpanded: Signal<Bool, NoError> { get }
-
   /// Emits opacity for arrow and whether to animate the change, used for launch transition.
   var arrowOpacityAnimated: Signal<(CGFloat, Bool), NoError> { get }
 
@@ -106,7 +103,6 @@ public final class DiscoveryNavigationHeaderViewModel: DiscoveryNavigationHeader
       .skipNil()
 
     let strings = paramsAndFiltersAreHidden.map(first).map(stringsForTitle)
-    let categoryId = paramsAndFiltersAreHidden.map(first).map { $0.category?.root?.id }
     let filtersAreHidden = paramsAndFiltersAreHidden.map(second)
 
     self.animateArrowToDown = filtersAreHidden
@@ -147,7 +143,9 @@ public final class DiscoveryNavigationHeaderViewModel: DiscoveryNavigationHeader
         .map { ($0.category?.isRoot == .some(false) ? 0.6 : 1.0, true) }
     )
 
-    self.primaryLabelText = strings.map { $0.filter }
+    self.primaryLabelText = strings.map { filter in
+      filter.filter
+      }
 
     self.secondaryLabelIsHidden = strings
       .map { $0.subcategory == nil }
@@ -168,12 +166,6 @@ public final class DiscoveryNavigationHeaderViewModel: DiscoveryNavigationHeader
     self.showDiscoveryFilters = rowForFilters
       .takeWhen(paramsAndFiltersAreHidden.filter { !$0.filtersAreHidden })
 
-    self.animateBorderLineViewAndIsExpanded = Signal.merge(
-      self.paramsProperty.signal.skipNil().mapConst(false),
-      self.showDiscoveryFilters.mapConst(true),
-      dismissFiltersSignal.mapConst(false)
-    )
-
     self.titleButtonAccessibilityHint = self.animateArrowToDown
       .map { $0 ? Strings.Opens_filters() : Strings.Closes_filters()
     }
@@ -183,7 +175,7 @@ public final class DiscoveryNavigationHeaderViewModel: DiscoveryNavigationHeader
       .map(accessibilityLabelForTitleButton)
 
     let categoryIdOnParamsUpdated = currentParams
-      .map { $0.category?.id }
+      .map { $0.category?.intID }
       .skipNil()
 
     let categoryIdOnFavoriteTap = categoryIdOnParamsUpdated
@@ -227,7 +219,6 @@ public final class DiscoveryNavigationHeaderViewModel: DiscoveryNavigationHeader
       .map { $0.params }
       .observeValues { AppEnvironment.current.koala.trackDiscoveryModalClosedFilter(params: $0) }
   }
-  // swiftlint:enable function_body_length
 
   fileprivate let paramsProperty = MutableProperty<DiscoveryParams?>(nil)
   public func configureWith(params: DiscoveryParams) {
@@ -251,7 +242,6 @@ public final class DiscoveryNavigationHeaderViewModel: DiscoveryNavigationHeader
   }
 
   public let animateArrowToDown: Signal<Bool, NoError>
-  public let animateBorderLineViewAndIsExpanded: Signal<Bool, NoError>
   public let arrowOpacityAnimated: Signal<(CGFloat, Bool), NoError>
   public let dividerIsHidden: Signal<Bool, NoError>
   public let dismissDiscoveryFilters: Signal<(), NoError>
@@ -287,7 +277,7 @@ private func stringsForTitle(params: DiscoveryParams) -> (filter: String, subcat
   } else if params.social == true {
     filterText = Strings.Following()
   } else if let category = params.category {
-    filterText = category.isRoot ? string(forCategoryId: category.id) : category.root?.name ?? ""
+    filterText = category.isRoot ? string(forCategoryId: category.intID ?? -1) : category.root?.name ?? ""
     subcategoryText = category.isRoot ? nil : category.name
   } else if params.recommended == true {
     filterText = Strings.Recommended_For_You()

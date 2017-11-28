@@ -96,12 +96,20 @@ extension Lens where Whole == User, Part == User.Avatar {
 }
 
 extension Lens where Whole == User, Part == User.NewsletterSubscriptions {
+  public var arts: Lens<User, Bool?> {
+    return User.lens.newsletters..User.NewsletterSubscriptions.lens.arts
+  }
+
   public var games: Lens<User, Bool?> {
     return User.lens.newsletters..User.NewsletterSubscriptions.lens.games
   }
 
   public var happening: Lens<User, Bool?> {
     return User.lens.newsletters..User.NewsletterSubscriptions.lens.happening
+  }
+
+  public var invent: Lens<User, Bool?> {
+    return User.lens.newsletters..User.NewsletterSubscriptions.lens.invent
   }
 
   public var promo: Lens<User, Bool?> {
@@ -132,6 +140,14 @@ extension Lens where Whole == User, Part == User.Notifications {
 
   public var postLikes: Lens<User, Bool?> {
     return User.lens.notifications..User.Notifications.lens.postLikes
+  }
+
+  public var creatorTips: Lens<User, Bool?> {
+    return User.lens.notifications..User.Notifications.lens.creatorTips
+  }
+
+  public var creatorDigest: Lens<User, Bool?> {
+    return User.lens.notifications..User.Notifications.lens.creatorDigest
   }
 
   public var updates: Lens<User, Bool?> {

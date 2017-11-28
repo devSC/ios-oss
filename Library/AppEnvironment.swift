@@ -237,10 +237,12 @@ public struct AppEnvironment {
           apiBaseUrl: service.serverConfig.apiBaseUrl,
           webBaseUrl: service.serverConfig.webBaseUrl,
           apiClientAuth: ClientAuth(clientId: clientId),
-          basicHTTPAuth: service.serverConfig.basicHTTPAuth
+          basicHTTPAuth: service.serverConfig.basicHTTPAuth,
+          graphQLEndpointUrl: service.serverConfig.graphQLEndpointUrl
         ),
         oauthToken: service.oauthToken,
-        language: current.language.rawValue
+        language: current.language.rawValue,
+        currency: current.locale.currencyCode ?? "USD"
       )
     }
 
@@ -255,10 +257,12 @@ public struct AppEnvironment {
           apiBaseUrl: apiBaseUrl,
           webBaseUrl: webBaseUrl,
           apiClientAuth: service.serverConfig.apiClientAuth,
-          basicHTTPAuth: service.serverConfig.basicHTTPAuth
+          basicHTTPAuth: service.serverConfig.basicHTTPAuth,
+          graphQLEndpointUrl: service.serverConfig.graphQLEndpointUrl
         ),
         oauthToken: service.oauthToken,
-        language: current.language.rawValue
+        language: current.language.rawValue,
+        currency: current.locale.currencyCode ?? "USD"
       )
     }
 
@@ -271,10 +275,12 @@ public struct AppEnvironment {
           apiBaseUrl: service.serverConfig.apiBaseUrl,
           webBaseUrl: service.serverConfig.webBaseUrl,
           apiClientAuth: service.serverConfig.apiClientAuth,
-          basicHTTPAuth: BasicHTTPAuth(username: username, password: password)
+          basicHTTPAuth: BasicHTTPAuth(username: username, password: password),
+          graphQLEndpointUrl: service.serverConfig.graphQLEndpointUrl
         ),
         oauthToken: service.oauthToken,
-        language: current.language.rawValue
+        language: current.language.rawValue,
+        currency: current.locale.currencyCode ?? "USD"
       )
     }
 
@@ -290,14 +296,13 @@ public struct AppEnvironment {
       koala: current.koala |> Koala.lens.loggedInUser .~ currentUser
     )
   }
-  // swiftlint:enable function_body_length
 
   // Saves some key data for the current environment
   internal static func saveEnvironment(environment env: Environment = AppEnvironment.current,
                                        ubiquitousStore: KeyValueStoreType,
                                        userDefaults: KeyValueStoreType) {
 
-    var data: [String:Any] = [:]
+    var data: [String: Any] = [:]
 
     data["apiService.oauthToken.token"] = env.apiService.oauthToken?.token
     data["apiService.serverConfig.apiBaseUrl"] = env.apiService.serverConfig.apiBaseUrl.absoluteString
@@ -308,6 +313,7 @@ public struct AppEnvironment {
     // swiftlint:enable line_length
     data["apiService.serverConfig.webBaseUrl"] = env.apiService.serverConfig.webBaseUrl.absoluteString
     data["apiService.language"] = env.apiService.language
+    data["apiService.currency"] = env.apiService.currency
     data["config"] = env.config?.encode()
     data["currentUser"] = env.currentUser?.encode()
 
@@ -320,5 +326,5 @@ private func legacyOauthToken(forUserDefaults userDefaults: KeyValueStoreType) -
 }
 
 private func removeLegacyOauthToken(fromUserDefaults userDefaults: KeyValueStoreType) {
-  userDefaults.removeObjectForKey("com.kickstarter.access_token")
+  userDefaults.removeObject(forKey: "com.kickstarter.access_token")
 }

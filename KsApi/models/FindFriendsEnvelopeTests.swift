@@ -3,7 +3,7 @@ import XCTest
 
 final class FindFriendsEnvelopeTests: XCTestCase {
     func testJsonDecoding() {
-    let json: [String:Any] = [
+    let json: [String: Any] = [
       "contacts_imported": true,
       "urls": [
         "api": [
@@ -63,10 +63,9 @@ final class FindFriendsEnvelopeTests: XCTestCase {
     XCTAssertEqual(false, users[0].isFriend)
     XCTAssertEqual(true, users[1].isFriend)
   }
-  // swiftlint:enable function_body_length
 
   func testJsonDecoding_MissingData() {
-    let json: [String:Any] = [
+    let json: [String: Any] = [
       "contacts_imported": true,
       "urls": [
         "api": [

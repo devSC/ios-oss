@@ -8,13 +8,14 @@ internal final class SearchViewController: UITableViewController {
   fileprivate let dataSource = SearchDataSource()
 
   @IBOutlet fileprivate weak var cancelButton: UIButton!
-  @IBOutlet fileprivate var searchBarCenterConstraint: NSLayoutConstraint!
+  @IBOutlet fileprivate weak var centeringStackView: UIStackView!
+  @IBOutlet fileprivate weak var innerSearchStackView: UIStackView!
   @IBOutlet fileprivate weak var searchBarContainerView: UIView!
-  @IBOutlet fileprivate var searchBarLeadingConstraint: NSLayoutConstraint!
-  @IBOutlet fileprivate var searchBarTrailingConstraint: NSLayoutConstraint!
   @IBOutlet fileprivate weak var searchIconImageView: UIImageView!
   @IBOutlet fileprivate weak var searchStackView: UIStackView!
+  @IBOutlet fileprivate weak var searchStackViewWidthConstraint: NSLayoutConstraint!
   @IBOutlet fileprivate weak var searchTextField: UITextField!
+  @IBOutlet fileprivate weak var searchTextFieldHeightConstraint: NSLayoutConstraint!
 
   private let backgroundView = UIView()
   private let popularLoaderIndicator = UIActivityIndicatorView()
@@ -28,6 +29,8 @@ internal final class SearchViewController: UITableViewController {
     super.viewDidLoad()
 
     self.tableView.dataSource = self.dataSource
+
+    self.tableView.register(nib: .BackerDashboardProjectCell)
 
     self.viewModel.inputs.viewDidLoad()
   }
@@ -63,13 +66,11 @@ internal final class SearchViewController: UITableViewController {
       |> baseTableControllerStyle(estimatedRowHeight: 86)
 
     _ = [self.searchLoaderIndicator, self.popularLoaderIndicator]
-      ||> UIActivityIndicatorView.lens.hidesWhenStopped .~ true
-      ||> UIActivityIndicatorView.lens.activityIndicatorViewStyle .~ .white
-      ||> UIActivityIndicatorView.lens.color .~ .ksr_navy_900
+      ||> baseActivityIndicatorStyle
 
     _ = self.cancelButton
-      |> UIButton.lens.titleColor(forState: .normal) .~ .ksr_text_navy_700
-      |> UIButton.lens.titleLabel.font .~ .ksr_callout(size:16)
+      |> UIButton.lens.titleColor(forState: .normal) .~ .ksr_text_dark_grey_500
+      |> UIButton.lens.titleLabel.font .~ .ksr_callout(size:15)
       |> UIButton.lens.title(forState: .normal) %~ { _ in Strings.discovery_search_cancel() }
 
     _ = self.searchBarContainerView
@@ -77,22 +78,33 @@ internal final class SearchViewController: UITableViewController {
       |> UIView.lens.backgroundColor .~ .ksr_grey_300
 
     _ = self.searchIconImageView
-      |> UIImageView.lens.tintColor .~ .ksr_navy_500
+      |> UIImageView.lens.tintColor .~ .ksr_dark_grey_400
       |> UIImageView.lens.image .~ image(named: "search-icon")
 
     _ = self.searchStackView
       |> UIStackView.lens.spacing .~ Styles.grid(1)
+      |> UIStackView.lens.layoutMargins .~ .init(leftRight: Styles.grid(2))
+      |> UIStackView.lens.layoutMarginsRelativeArrangement .~ true
+
+    _ = self.innerSearchStackView
+      |> UIStackView.lens.spacing .~ Styles.grid(1)
 
     _ = self.searchTextField
       |> UITextField.lens.font .~ .ksr_body(size: 14)
-      |> UITextField.lens.textColor .~ .ksr_text_navy_700
-      |> UITextField.lens.placeholder %~ { _ in Strings.tabbar_search() }
+      |> UITextField.lens.textColor .~ .ksr_text_dark_grey_500
+
+    self.searchTextField.attributedPlaceholder = NSAttributedString(
+      string: Strings.tabbar_search(),
+      attributes: [NSForegroundColorAttributeName: UIColor.ksr_text_dark_grey_500]
+    )
 
     _ = self.tableView
       |> UITableView.lens.keyboardDismissMode .~ .onDrag
+
+    self.searchTextFieldHeightConstraint.constant = Styles.grid(5)
+    self.searchStackViewWidthConstraint.constant = self.view.frame.size.width * 0.8
   }
 
-  // swiftlint:disable:next function_body_length
   internal override func bindViewModel() {
 
     self.viewModel.outputs.projects
@@ -179,22 +191,23 @@ internal final class SearchViewController: UITableViewController {
   }
 
   fileprivate func changeSearchFieldFocus(focus: Bool, animated: Bool) {
-    UIView.animate(withDuration: 0.2 * (animated ? 1.0 : 0.0), animations: {
-      if focus {
-        self.searchBarCenterConstraint.isActive = false
-        self.searchBarLeadingConstraint.isActive = true
-        self.searchBarTrailingConstraint.isActive = true
-        self.cancelButton.isHidden = false
+    if focus {
+      self.cancelButton.isHidden = false
+
+      self.centeringStackView.alignment = .fill
+
+      if !self.searchTextField.isFirstResponder {
         self.searchTextField.becomeFirstResponder()
-      } else {
-        self.searchBarCenterConstraint.isActive = true
-        self.searchBarLeadingConstraint.isActive = false
-        self.searchBarTrailingConstraint.isActive = false
-        self.cancelButton.isHidden = true
+      }
+    } else {
+      self.cancelButton.isHidden = true
+
+      self.centeringStackView.alignment = .center
+
+      if self.searchTextField.isFirstResponder {
         self.searchTextField.resignFirstResponder()
       }
-      self.view.layoutIfNeeded()
-    })
+    }
   }
 
   internal override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {

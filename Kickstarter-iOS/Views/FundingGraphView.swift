@@ -91,7 +91,7 @@ public final class FundingGraphView: UIView {
     }
 
     // Stroke the darker graph line before filling with lighter color.
-    UIColor.ksr_text_navy_500.setStroke()
+    UIColor.ksr_text_dark_grey_400.setStroke()
     line.stroke()
 
     line.addLine(to: CGPoint(x: lastPoint.x, y: self.bounds.height))
@@ -216,7 +216,6 @@ public final class FundingGraphView: UIView {
 
     self.goalLabel.isHidden = projectHasFunded
   }
-  // swiftlint:enable function_body_length
 }
 
 // Calculates the point of intersection of Line 1 and Line 2.

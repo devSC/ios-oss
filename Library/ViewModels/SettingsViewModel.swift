@@ -6,14 +6,18 @@ import ReactiveExtensions
 import Result
 
 public protocol SettingsViewModelInputs {
+  func artsAndCultureNewsletterTapped(on: Bool)
   func backingsTapped(selected: Bool)
   func betaFeedbackButtonTapped()
   func commentsTapped(selected: Bool)
+  func creatorTipsTapped(selected: Bool)
+  func emailFrequencyTapped()
   func findFriendsTapped()
   func followerTapped(selected: Bool)
   func friendActivityTapped(selected: Bool)
   func gamesNewsletterTapped(on: Bool)
   func happeningNewsletterTapped(on: Bool)
+  func inventNewsletterTapped(on: Bool)
   func logoutCanceled()
   func logoutConfirmed()
   func logoutTapped()
@@ -33,18 +37,23 @@ public protocol SettingsViewModelInputs {
 }
 
 public protocol SettingsViewModelOutputs {
+  var artsAndCultureNewsletterOn: Signal<Bool, NoError> { get }
   var backingsSelected: Signal<Bool, NoError> { get }
   var betaToolsHidden: Signal<Bool, NoError> { get }
   var commentsSelected: Signal<Bool, NoError> { get }
   var creatorNotificationsHidden: Signal<Bool, NoError> { get }
+  var creatorTipsSelected: Signal<Bool, NoError> { get }
+  var emailFrequencyButtonEnabled: Signal<Bool, NoError> { get }
   var followerSelected: Signal<Bool, NoError> { get }
   var friendActivitySelected: Signal<Bool, NoError> { get }
   var gamesNewsletterOn: Signal<Bool, NoError> { get }
   var goToAppStoreRating: Signal<String, NoError> { get }
   var goToBetaFeedback: Signal<(), NoError> { get }
+  var goToEmailFrequency: Signal<User, NoError> { get }
   var goToFindFriends: Signal<Void, NoError> { get }
   var goToManageProjectNotifications: Signal<Void, NoError> { get }
   var happeningNewsletterOn: Signal<Bool, NoError> { get }
+  var inventNewsletterOn: Signal<Bool, NoError> { get }
   var logoutWithParams: Signal<DiscoveryParams, NoError> { get }
   var manageProjectNotificationsButtonAccessibilityHint: Signal<String, NoError> { get }
   var mobileBackingsSelected: Signal<Bool, NoError> { get }
@@ -71,8 +80,8 @@ public protocol SettingsViewModelType {
 }
 
 public final class SettingsViewModel: SettingsViewModelType, SettingsViewModelInputs,
-  SettingsViewModelOutputs {
-    // swiftlint:disable cyclomatic_complexity
+SettingsViewModelOutputs {
+
   public init() {
     let initialUser = viewDidLoadProperty.signal
       .flatMap {
@@ -84,15 +93,19 @@ public final class SettingsViewModel: SettingsViewModelType, SettingsViewModelIn
       .skipNil()
 
     let newsletterOn: Signal<(Newsletter, Bool), NoError> = .merge(
+      self.artsAndCultureNewsletterTappedProperty.signal.map { (.arts, $0) },
       self.gamesNewsletterTappedProperty.signal.map { (.games, $0) },
       self.happeningNewsletterTappedProperty.signal.map { (.happening, $0) },
+      self.inventNewsletterTappedProperty.signal.map { (.invent, $0) },
       self.promoNewsletterTappedProperty.signal.map { (.promo, $0) },
       self.weeklyNewsletterTappedProperty.signal.map { (.weekly, $0) }
     )
 
     let userAttributeChanged: Signal<(UserAttribute, Bool), NoError> = .merge([
+      self.artsAndCultureNewsletterTappedProperty.signal.map { (.newsletter(.arts), $0) },
       self.gamesNewsletterTappedProperty.signal.map { (.newsletter(.games), $0) },
       self.happeningNewsletterTappedProperty.signal.map { (.newsletter(.happening), $0) },
+      self.inventNewsletterTappedProperty.signal.map { (.newsletter(.invent), $0) },
       self.promoNewsletterTappedProperty.signal.map { (.newsletter(.promo), $0) },
       self.weeklyNewsletterTappedProperty.signal.map { (.newsletter(.weekly), $0)},
 
@@ -107,6 +120,7 @@ public final class SettingsViewModel: SettingsViewModelType, SettingsViewModelIn
       self.mobilePostLikesTappedProperty.signal.map { (.notification(.mobilePostLikes), $0) },
       self.mobileUpdatesTappedProperty.signal.map { (.notification(.mobileUpdates), $0) },
       self.postLikesTappedProperty.signal.map { (.notification(.postLikes), $0) },
+      self.creatorTipsProperty.signal.map { (.notification(.creatorTips), $0) },
       self.updatesTappedProperty.signal.map { (.notification(.updates), $0) }
     ])
 
@@ -175,8 +189,13 @@ public final class SettingsViewModel: SettingsViewModelType, SettingsViewModelIn
       .map { $0.newsletters.happening }.skipNil().skipRepeats()
     self.promoNewsletterOn = self.updateCurrentUser.map { $0.newsletters.promo }.skipNil().skipRepeats()
     self.weeklyNewsletterOn = self.updateCurrentUser.map { $0.newsletters.weekly }.skipNil().skipRepeats()
+    self.inventNewsletterOn = self.updateCurrentUser.map { $0.newsletters.invent }.skipNil().skipRepeats()
+    self.artsAndCultureNewsletterOn = self.updateCurrentUser
+      .map { $0.newsletters.arts}.skipNil().skipRepeats()
 
     self.backingsSelected = self.updateCurrentUser.map { $0.notifications.backings }.skipNil().skipRepeats()
+    self.creatorTipsSelected = self.updateCurrentUser
+      .map { $0.notifications.creatorTips }.skipNil().skipRepeats()
     self.commentsSelected = self.updateCurrentUser
       .map { $0.notifications.comments }.skipNil().skipRepeats()
     self.followerSelected = self.updateCurrentUser
@@ -199,6 +218,11 @@ public final class SettingsViewModel: SettingsViewModelType, SettingsViewModelIn
       .map { $0.notifications.postLikes }.skipNil().skipRepeats()
     self.updatesSelected = self.updateCurrentUser
       .map { $0.notifications.updates }.skipNil().skipRepeats()
+
+    self.emailFrequencyButtonEnabled = self.backingsSelected
+
+    self.goToEmailFrequency = self.updateCurrentUser
+      .takeWhen(self.emailFrequencyTappedProperty.signal)
 
     self.versionText = viewDidLoadProperty.signal
       .map {
@@ -228,11 +252,14 @@ public final class SettingsViewModel: SettingsViewModelType, SettingsViewModelIn
           )
         case let .notification(notification):
           switch notification {
-          case .mobileBackings, .mobileComments, .mobileFollower, .mobileFriendActivity, .mobilePostLikes,
+          case
+          .mobileBackings,
+          .mobileComments, .mobileFollower, .mobileFriendActivity, .mobilePostLikes,
                .mobileUpdates:
             AppEnvironment.current.koala.trackChangePushNotification(type: notification.trackingString,
                                                                      on: on)
-          case .backings, .comments, .follower, .friendActivity, .postLikes, .updates:
+          case .backings,
+               .comments, .follower, .friendActivity, .postLikes, .creatorTips, .updates:
             AppEnvironment.current.koala.trackChangeEmailNotification(type: notification.trackingString,
                                                                       on: on)
           }
@@ -253,9 +280,11 @@ public final class SettingsViewModel: SettingsViewModelType, SettingsViewModelIn
 
     self.viewDidLoadProperty.signal.observeValues { _ in AppEnvironment.current.koala.trackSettingsView() }
   }
-  // swiftlint:enable function_body_length
-  // swiftlint:enable cyclomatic_complexity
 
+  fileprivate let artsAndCultureNewsletterTappedProperty = MutableProperty(false)
+  public func artsAndCultureNewsletterTapped(on: Bool) {
+    self.artsAndCultureNewsletterTappedProperty.value = on
+  }
   fileprivate let backingsTappedProperty = MutableProperty(false)
   public func backingsTapped(selected: Bool) {
     self.backingsTappedProperty.value = selected
@@ -267,6 +296,22 @@ public final class SettingsViewModel: SettingsViewModelType, SettingsViewModelIn
   fileprivate let commentsTappedProperty = MutableProperty(false)
   public func commentsTapped(selected: Bool) {
     self.commentsTappedProperty.value = selected
+  }
+  fileprivate let creatorTipsProperty = MutableProperty(false)
+  public func creatorTipsTapped(selected: Bool) {
+    self.creatorTipsProperty.value = selected
+  }
+  fileprivate let creatorDigestTappedProperty = MutableProperty(false)
+  public func creatorDigestTapped(on: Bool) {
+    self.creatorDigestTappedProperty.value = on
+  }
+  fileprivate let individualEmailTappedProperty = MutableProperty(false)
+  public func individualEmailTapped(on: Bool) {
+    self.individualEmailTappedProperty.value = on
+  }
+  fileprivate let emailFrequencyTappedProperty = MutableProperty()
+  public func emailFrequencyTapped() {
+    self.emailFrequencyTappedProperty.value = ()
   }
   fileprivate let findFriendsTappedProperty = MutableProperty()
   public func findFriendsTapped() {
@@ -287,6 +332,10 @@ public final class SettingsViewModel: SettingsViewModelType, SettingsViewModelIn
   fileprivate let happeningNewsletterTappedProperty = MutableProperty(false)
   public func happeningNewsletterTapped(on: Bool) {
     self.happeningNewsletterTappedProperty.value = on
+  }
+  fileprivate let inventNewsletterTappedProperty = MutableProperty(false)
+  public func inventNewsletterTapped(on: Bool) {
+    self.inventNewsletterTappedProperty.value = on
   }
   fileprivate let logoutCanceledProperty = MutableProperty()
   public func logoutCanceled() {
@@ -353,18 +402,23 @@ public final class SettingsViewModel: SettingsViewModelType, SettingsViewModelIn
     self.weeklyNewsletterTappedProperty.value = on
   }
 
+  public let artsAndCultureNewsletterOn: Signal<Bool, NoError>
   public let backingsSelected: Signal<Bool, NoError>
   public let betaToolsHidden: Signal<Bool, NoError>
   public let commentsSelected: Signal<Bool, NoError>
   public let creatorNotificationsHidden: Signal<Bool, NoError>
+  public let creatorTipsSelected: Signal<Bool, NoError>
+  public let emailFrequencyButtonEnabled: Signal<Bool, NoError>
   public let followerSelected: Signal<Bool, NoError>
   public let friendActivitySelected: Signal<Bool, NoError>
   public let gamesNewsletterOn: Signal<Bool, NoError>
   public let goToAppStoreRating: Signal<String, NoError>
   public let goToBetaFeedback: Signal<(), NoError>
+  public let goToEmailFrequency: Signal<User, NoError>
   public let goToFindFriends: Signal<Void, NoError>
   public let goToManageProjectNotifications: Signal<Void, NoError>
   public let happeningNewsletterOn: Signal<Bool, NoError>
+  public let inventNewsletterOn: Signal<Bool, NoError>
   public let logoutWithParams: Signal<DiscoveryParams, NoError>
   public var manageProjectNotificationsButtonAccessibilityHint: Signal<String, NoError>
   public let mobileBackingsSelected: Signal<Bool, NoError>
@@ -396,8 +450,10 @@ private enum UserAttribute {
     switch self {
     case let .newsletter(newsletter):
       switch newsletter {
+      case .arts:       return User.lens.newsletters.arts
       case .games:      return User.lens.newsletters.games
       case .happening:  return User.lens.newsletters.happening
+      case .invent:     return User.lens.newsletters.invent
       case .promo:      return User.lens.newsletters.promo
       case .weekly:     return User.lens.newsletters.weekly
       }
@@ -405,6 +461,7 @@ private enum UserAttribute {
       switch notification {
       case .backings:             return User.lens.notifications.backings
       case .comments:             return User.lens.notifications.comments
+      case .creatorTips:          return User.lens.notifications.creatorTips
       case .follower:             return User.lens.notifications.follower
       case .friendActivity:       return User.lens.notifications.friendActivity
       case .mobileBackings:       return User.lens.notifications.mobileBackings
@@ -423,6 +480,7 @@ private enum UserAttribute {
 private enum Notification {
   case backings
   case comments
+  case creatorTips
   case follower
   case friendActivity
   case mobileBackings
@@ -438,6 +496,7 @@ private enum Notification {
     switch self {
     case .backings, .mobileBackings:                return "New pledges"
     case .comments, .mobileComments:                return "New comments"
+    case .creatorTips:                              return "Creator tips"
     case .follower, .mobileFollower:                return "New followers"
     case .friendActivity, .mobileFriendActivity:    return "Friend backs a project"
     case .postLikes, .mobilePostLikes:              return "New likes"
@@ -445,4 +504,3 @@ private enum Notification {
     }
   }
 }
-// swiftlint:enable file_length

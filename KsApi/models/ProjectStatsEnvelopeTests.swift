@@ -3,8 +3,8 @@ import XCTest
 @testable import Argo
 
 final class ProjectStatsEnvelopeTests: XCTestCase {
-    func testJSONDecoding() {
-    let fundingStats: [[String:Any]] = [
+  func testJSONDecoding() {
+    let fundingStats: [[String: Any]] = [
       [
         "cumulative_backers_count": 7,
         "cumulative_pledged": "30",
@@ -22,14 +22,14 @@ final class ProjectStatsEnvelopeTests: XCTestCase {
       ["date": 555444334],
       ["date": 555444335]
     ]
-    let json: [String:Any] = [
+    let json: [String: Any] = [
       "referral_distribution": [
         [
           "code": "my_wonderful_referrer_code",
           "referrer_name": "My wonderful referrer name",
           "percentage_of_dollars": "0.250",
           "referrer_type": "External",
-          "pledged": "20.0",
+          "pledged": "20.5",
           "backers_count": 8
         ],
         [
@@ -96,11 +96,12 @@ final class ProjectStatsEnvelopeTests: XCTestCase {
 
     XCTAssertEqual("my_wonderful_referrer_code", referralDistribution[0].code)
     XCTAssertEqual(8, referralDistribution[0].backersCount)
+    XCTAssertEqual(20.5, referralDistribution[0].pledged)
     XCTAssertEqual(ProjectStatsEnvelope.ReferrerStats.ReferrerType.external,
                    referralDistribution[0].referrerType)
     XCTAssertEqual("my_okay_referrer_code", referralDistribution[1].code)
     XCTAssertEqual(1, referralDistribution[1].backersCount)
-    XCTAssertEqual(ProjectStatsEnvelope.ReferrerStats.ReferrerType.`internal`,
+    XCTAssertEqual(ProjectStatsEnvelope.ReferrerStats.ReferrerType.internal,
                    referralDistribution[1].referrerType)
 
     XCTAssertEqual(0, rewardDistribution[0].rewardId)
@@ -113,10 +114,9 @@ final class ProjectStatsEnvelopeTests: XCTestCase {
     XCTAssertEqual(5, rewardDistribution[1].minimum)
     XCTAssertEqual(25, rewardDistribution[2].minimum)
   }
-  // swiftlint:enable function_body_length
 
   func testJSONDecoding_MissingData() {
-    let json: [String:Any] = [
+    let json: [String: Any] = [
       "referral_distribution": [],
       "reward_distribution": [],
       "cumulative": [],

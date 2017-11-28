@@ -16,11 +16,17 @@ public protocol FindFriendsFriendFollowCellViewModelInputs {
 }
 
 public protocol FindFriendsFriendFollowCellViewModelOutputs {
+  /// Emits accessibilityValue for the Cell
+  var cellAccessibilityValue: Signal<String, NoError> { get }
+
   /// Emits whether Follow button should be enabled
   var enableFollowButton: Signal<Bool, NoError> { get }
 
   /// Emits whether Unfollow button should be enabled
   var enableUnfollowButton: Signal<Bool, NoError> { get }
+
+  // Emits follow button accessibilityLabel that includes friend's name
+  var followButtonAccessibilityLabel: Signal<String, NoError> { get }
 
   /// Emits when to show Follow button
   var hideFollowButton: Signal<Bool, NoError> { get }
@@ -45,6 +51,10 @@ public protocol FindFriendsFriendFollowCellViewModelOutputs {
 
   /// Emits number of projects created text
   var projectsCreatedText: Signal<String, NoError> { get }
+
+  // Emits unfollow button accessibilityLabel that includes friend's name
+  var unfollowButtonAccessibilityLabel: Signal<String, NoError> { get }
+
 }
 
 public protocol FindFriendsFriendFollowCellViewModelType {
@@ -68,10 +78,10 @@ public final class FindFriendsFriendFollowCellViewModel: FindFriendsFriendFollow
       .map { $0.stats.backedProjectsCount ?? 0 }
       .map(Strings.social_following_friend_projects_count_backed(backed_count:))
 
-    self.hideProjectsCreated = friend.map { $0.stats.createdProjectsCount == 0 }
+    let projectsCreatedCount = friend.map { $0.stats.createdProjectsCount ?? 0 }
+    self.hideProjectsCreated = projectsCreatedCount.map { $0 == 0 }
 
-    self.projectsCreatedText = friend
-      .map { $0.stats.createdProjectsCount ?? 0 }
+    self.projectsCreatedText = projectsCreatedCount
       .filter { $0 > 0 }
       .map(Strings.social_following_friend_projects_count_created(created_count:))
 
@@ -135,6 +145,10 @@ public final class FindFriendsFriendFollowCellViewModel: FindFriendsFriendFollow
       )
       .skipRepeats()
 
+    self.followButtonAccessibilityLabel = name.map(Strings.Follow_friend_name)
+    self.unfollowButtonAccessibilityLabel = name.map(Strings.Unfollow_friend_name)
+    self.cellAccessibilityValue = isFollowed.map { $0 ? Strings.Followed() : Strings.Not_followed() }
+
     let source = self.configureWithSourceProperty.signal.skipNil().map { $0 }
 
     source
@@ -145,7 +159,6 @@ public final class FindFriendsFriendFollowCellViewModel: FindFriendsFriendFollow
       .takeWhen(self.unfollowButtonTappedProperty.signal)
       .observeValues { AppEnvironment.current.koala.trackFriendUnfollow(source: $0) }
   }
-  // swiftlint:enable function_body_length
 
   public var inputs: FindFriendsFriendFollowCellViewModelInputs { return self }
   public var outputs: FindFriendsFriendFollowCellViewModelOutputs { return self }
@@ -167,20 +180,23 @@ public final class FindFriendsFriendFollowCellViewModel: FindFriendsFriendFollow
     unfollowButtonTappedProperty.value = ()
   }
 
+  public let cellAccessibilityValue: Signal<String, NoError>
   public let enableFollowButton: Signal<Bool, NoError>
   public let enableUnfollowButton: Signal<Bool, NoError>
+  public let followButtonAccessibilityLabel: Signal<String, NoError>
   public let hideFollowButton: Signal<Bool, NoError>
+  public let hideProjectsCreated: Signal<Bool, NoError>
   public let hideUnfollowButton: Signal<Bool, NoError>
   public let imageURL: Signal<URL?, NoError>
   public let location: Signal<String, NoError>
   public let name: Signal<String, NoError>
   public let projectsBackedText: Signal<String, NoError>
   public let projectsCreatedText: Signal<String, NoError>
-  public let hideProjectsCreated: Signal<Bool, NoError>
+  public let unfollowButtonAccessibilityLabel: Signal<String, NoError>
 }
 
 private func cached(friend: User) -> User {
-  if let friendCache = AppEnvironment.current.cache[KSCache.ksr_findFriendsFollowing] as? [Int:Bool] {
+  if let friendCache = AppEnvironment.current.cache[KSCache.ksr_findFriendsFollowing] as? [Int: Bool] {
     let isFriend = friendCache[friend.id] ?? friend.isFriend
     return friend |> User.lens.isFriend .~ isFriend
   } else {
@@ -192,7 +208,7 @@ private func cache(friend: User, isFriend: Bool) {
   AppEnvironment.current.cache[KSCache.ksr_findFriendsFollowing] =
     AppEnvironment.current.cache[KSCache.ksr_findFriendsFollowing] ?? [Int: Bool]()
 
-  var cache = AppEnvironment.current.cache[KSCache.ksr_findFriendsFollowing] as? [Int:Bool]
+  var cache = AppEnvironment.current.cache[KSCache.ksr_findFriendsFollowing] as? [Int: Bool]
   cache?[friend.id] = isFriend
 
   AppEnvironment.current.cache[KSCache.ksr_findFriendsFollowing] = cache

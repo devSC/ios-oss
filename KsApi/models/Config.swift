@@ -3,18 +3,18 @@ import Curry
 import Runes
 
 public struct Config {
-  public let abExperiments: [String:String]
-  public let appId: Int
-  public let applePayCountries: [String]
-  public let countryCode: String
-  public let features: [String:Bool]
-  public let iTunesLink: String
-  public let launchedCountries: [Project.Country]
-  public let locale: String
-  public let stripePublishableKey: String
+  public private(set) var abExperiments: [String: String]
+  public private(set) var appId: Int
+  public private(set) var applePayCountries: [String]
+  public private(set) var countryCode: String
+  public private(set) var features: [String: Bool]
+  public private(set) var iTunesLink: String
+  public private(set) var launchedCountries: [Project.Country]
+  public private(set) var locale: String
+  public private(set) var stripePublishableKey: String
 }
 
-extension Config: Decodable {
+extension Config: Argo.Decodable {
   public static func decode(_ json: JSON) -> Decoded<Config> {
     let create = curry(Config.init)
     let tmp = create
@@ -46,8 +46,8 @@ public func == (lhs: Config, rhs: Config) -> Bool {
 }
 
 extension Config: EncodableType {
-  public func encode() -> [String:Any] {
-    var result: [String:Any] = [:]
+  public func encode() -> [String: Any] {
+    var result: [String: Any] = [:]
     result["ab_experiments"] = self.abExperiments
     result["app_id"] = self.appId
     result["apple_pay_countries"] = self.applePayCountries
@@ -64,7 +64,7 @@ extension Config: EncodableType {
 // Useful for getting around swift optimization bug: https://github.com/thoughtbot/Argo/issues/363
 // Turns out using `>>-` or `flatMap` on a `Decoded` fails to compile with optimizations on, so this
 // function does it manually.
-private func decodeDictionary<T: Decodable>(_ j: Decoded<JSON>)
+private func decodeDictionary<T: Argo.Decodable>(_ j: Decoded<JSON>)
   -> Decoded<[String:T]> where T.DecodedType == T {
   switch j {
   case let .success(json): return [String: T].decode(json)

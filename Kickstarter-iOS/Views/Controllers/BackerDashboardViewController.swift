@@ -8,7 +8,6 @@ internal final class BackerDashboardViewController: UIViewController {
   @IBOutlet private weak var avatarImageView: CircleAvatarImageView!
   @IBOutlet private weak var backedMenuButton: UIButton!
   @IBOutlet private weak var backerNameLabel: UILabel!
-  @IBOutlet private weak var backerLocationLabel: UILabel!
   @IBOutlet private weak var dividerView: UIView!
   @IBOutlet private weak var embeddedViewTopLayoutConstraint: NSLayoutConstraint!
   @IBOutlet private weak var headerTopContainerView: UIView!
@@ -41,6 +40,12 @@ internal final class BackerDashboardViewController: UIViewController {
 
     self.pageViewController = self.childViewControllers
       .flatMap { $0 as? UIPageViewController }.first
+    self.pageViewController.setViewControllers(
+      [.init()],
+      direction: .forward,
+      animated: false,
+      completion: nil
+    )
     self.pageViewController.delegate = self
 
     _ = self.backedMenuButton
@@ -68,13 +73,11 @@ internal final class BackerDashboardViewController: UIViewController {
     self.viewModel.inputs.viewWillAppear(animated)
   }
 
-  // swiftlint:disable:next function_body_length
   internal override func bindViewModel() {
     super.bindViewModel()
 
     self.avatarImageView.rac.imageUrl = self.viewModel.outputs.avatarURL
     self.backerNameLabel.rac.text = self.viewModel.outputs.backerNameText
-    self.backerLocationLabel.rac.text = self.viewModel.outputs.backerLocationText
     self.embeddedViewTopLayoutConstraint.rac.constant =
       self.viewModel.outputs.embeddedViewTopConstraintConstant
     self.sortBar.rac.hidden = self.viewModel.outputs.sortBarIsHidden
@@ -160,7 +163,7 @@ internal final class BackerDashboardViewController: UIViewController {
     _ = self.navigationItem
       |> UINavigationItem.lens.title %~ { _ in Strings.tabbar_profile() }
 
-    _ = self.messagesButtonItem
+        _ = self.messagesButtonItem
       |> UIBarButtonItem.lens.image .~ image(named: "inbox-icon")
       |> UIBarButtonItem.lens.accessibilityLabel %~ { _ in Strings.profile_buttons_messages() }
 
@@ -179,12 +182,8 @@ internal final class BackerDashboardViewController: UIViewController {
     }
 
     _ = self.backerNameLabel
-      |> UILabel.lens.textColor .~ .black
+      |> UILabel.lens.textColor .~ .ksr_text_dark_grey_900
       |> UILabel.lens.font .~ .ksr_headline(size: 18)
-
-    _ = self.backerLocationLabel
-      |> UILabel.lens.textColor .~ .ksr_text_navy_600
-      |> UILabel.lens.font .~ .ksr_subhead(size: 14)
   }
 
   private func configurePagesDataSource(tab: BackerDashboardTab, sort: DiscoveryParams.Sort) {
@@ -204,14 +203,14 @@ internal final class BackerDashboardViewController: UIViewController {
       NSFontAttributeName: self.traitCollection.isRegularRegular
         ? UIFont.ksr_headline(size: 16.0)
         : UIFont.ksr_headline(size: 13.0),
-      NSForegroundColorAttributeName: UIColor.ksr_text_navy_500
+      NSForegroundColorAttributeName: UIColor.ksr_text_dark_grey_500
       ])
 
     let selectedTitleString = NSAttributedString(string: string, attributes: [
       NSFontAttributeName: self.traitCollection.isRegularRegular
         ? UIFont.ksr_headline(size: 16.0)
         : UIFont.ksr_headline(size: 13.0),
-      NSForegroundColorAttributeName: UIColor.black
+      NSForegroundColorAttributeName: UIColor.ksr_dark_grey_900
       ])
 
     _ = button

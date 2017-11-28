@@ -12,25 +12,25 @@ internal final class DiscoveryExpandedSelectableRowCell: UITableViewCell, ValueC
 
   internal func configureWith(value: (row: SelectableRow, categoryId: Int?)) {
     if let category = value.row.params.category, category.isRoot {
-      self.filterTitleLabel.text = RootCategory(categoryId: category.id).allProjectsString()
+      self.filterTitleLabel.text = RootCategory(categoryId: category.intID ?? -1).allProjectsString()
     } else {
       self.filterTitleLabel.text = value.row.params.category?.name
     }
 
     _ = self.highlightView
-      |> UIView.lens.backgroundColor .~ discoverySecondaryColor()
+      |> UIView.lens.backgroundColor .~ .ksr_green_500
       |> UIView.lens.alpha .~ 0.08
       |> UIView.lens.hidden .~ !value.row.isSelected
 
     _ = self.circleImageView
-      |> UIView.lens.tintColor .~ discoverySecondaryColor()
+      |> UIView.lens.tintColor .~ .ksr_green_500
       |> UIView.lens.hidden .~ !value.row.isSelected
 
     _ = self.checkImageView
       |> UIView.lens.hidden .~ !value.row.isSelected
 
     _ = self.filterTitleLabel
-      |> UILabel.lens.textColor .~ discoverySecondaryColor()
+      |> UILabel.lens.textColor .~ .ksr_green_500
       |> UILabel.lens.numberOfLines .~ 2
 
     self.rowIsSelected = value.row.isSelected

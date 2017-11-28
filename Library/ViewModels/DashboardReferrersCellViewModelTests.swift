@@ -33,21 +33,21 @@ internal final class DashboardReferrersCellViewModelTests: TestCase {
   }
 
   func testAccumulatedReferrerDataEmits() {
-    let country = Project.Country.US
+    let country = Project.Country.us
     let cumulative = ProjectStatsEnvelope.CumulativeStats.template
     let project = .template |> Project.lens.country .~ country
     let referrers = [
       .template
         |> ProjectStatsEnvelope.ReferrerStats.lens.percentageOfDollars .~ 0.5
-        |> ProjectStatsEnvelope.ReferrerStats.lens.pledged .~ 500
+        |> ProjectStatsEnvelope.ReferrerStats.lens.pledged .~ 500.5
         |> ProjectStatsEnvelope.ReferrerStats.lens.referrerType .~ .`internal`,
       .template
         |> ProjectStatsEnvelope.ReferrerStats.lens.percentageOfDollars .~ 0.2
-        |> ProjectStatsEnvelope.ReferrerStats.lens.pledged .~ 200
+        |> ProjectStatsEnvelope.ReferrerStats.lens.pledged .~ 200.5
         |> ProjectStatsEnvelope.ReferrerStats.lens.referrerType .~ .`internal`,
       .template
         |> ProjectStatsEnvelope.ReferrerStats.lens.percentageOfDollars .~ 0.3
-        |> ProjectStatsEnvelope.ReferrerStats.lens.pledged .~ 300
+        |> ProjectStatsEnvelope.ReferrerStats.lens.pledged .~ 300.5
         |> ProjectStatsEnvelope.ReferrerStats.lens.referrerType .~ .external,
       ]
 
@@ -56,11 +56,11 @@ internal final class DashboardReferrersCellViewModelTests: TestCase {
     self.externalPercentText.assertValues(["30%"])
     self.externalPledgedText.assertValues(["$300"])
     self.internalPercentText.assertValues(["70%"])
-    self.internalPledgedText.assertValues(["$700"])
+    self.internalPledgedText.assertValues(["$701"])
   }
 
   func testCumulativeDataEmits() {
-    let country = Project.Country.US
+    let country = Project.Country.us
     let cumulative = .template
       |> ProjectStatsEnvelope.CumulativeStats.lens.averagePledge .~ 50
     let project = .template |> Project.lens.country .~ country
@@ -82,7 +82,7 @@ internal final class DashboardReferrersCellViewModelTests: TestCase {
     let stats9 = .template |> ProjectStatsEnvelope.ReferrerStats.lens.backersCount .~ 9
     let stats10 = .template |> ProjectStatsEnvelope.ReferrerStats.lens.backersCount .~ 10
 
-    let country = Project.Country.US
+    let country = Project.Country.us
     let cumulative = ProjectStatsEnvelope.CumulativeStats.template
     let project = .template |> Project.lens.country .~ country
     let referrers = [stats1, stats2, stats3, stats4, stats5, stats6, stats7, stats8, stats9, stats10]
@@ -108,7 +108,7 @@ internal final class DashboardReferrersCellViewModelTests: TestCase {
   }
 
   func testSortByColumn() {
-    let country = Project.Country.US
+    let country = Project.Country.us
     let cumulative = ProjectStatsEnvelope.CumulativeStats.template
     let project = .template |> Project.lens.country .~ country
 

@@ -32,6 +32,9 @@ internal final class RewardCell: UITableViewCell, ValueCell {
   @IBOutlet fileprivate weak var rewardTitleLabel: UILabel!
   @IBOutlet fileprivate weak var rootStackView: UIStackView!
   @IBOutlet fileprivate weak var selectRewardButton: UIButton!
+  @IBOutlet fileprivate weak var shippingLocationsLabel: UILabel!
+  @IBOutlet fileprivate weak var shippingLocationsStackView: UIStackView!
+  @IBOutlet fileprivate weak var shippingLocationsSummaryLabel: UILabel!
   @IBOutlet fileprivate var separatorViews: [UIView]!
   @IBOutlet fileprivate weak var titleDescriptionStackView: UIStackView!
   @IBOutlet fileprivate weak var viewYourPledgeButton: UIButton!
@@ -58,7 +61,7 @@ internal final class RewardCell: UITableViewCell, ValueCell {
     self.viewModel.inputs.configureWith(project: value.0, rewardOrBacking: value.1)
   }
 
-    internal override func bindStyles() {
+  internal override func bindStyles() {
     super.bindStyles()
 
     _ = self
@@ -85,10 +88,10 @@ internal final class RewardCell: UITableViewCell, ValueCell {
       |> UIStackView.lens.spacing .~ Styles.grid(2)
 
     _ = self.footerStackView
-      |> UIStackView.lens.spacing .~ Styles.grid(1)
+      |> UIStackView.lens.spacing .~ Styles.grid(2)
 
-    _ = self.estimatedDeliveryDateStackView
-      |> UIStackView.lens.spacing .~ Styles.gridHalf(1)
+    _ = [self.estimatedDeliveryDateStackView, self.shippingLocationsStackView]
+      ||> UIStackView.lens.spacing .~ Styles.gridHalf(1)
 
     _ = [self.itemsContainerStackView, self.itemsHeaderStackView, self.itemsStackView]
       ||> UIStackView.lens.spacing .~ Styles.grid(2)
@@ -100,7 +103,7 @@ internal final class RewardCell: UITableViewCell, ValueCell {
 
     _ = self.allGoneContainerView
       |> roundedStyle(cornerRadius: 2)
-      |> UIView.lens.backgroundColor .~ UIColor.ksr_navy_700
+      |> UIView.lens.backgroundColor .~ UIColor.ksr_dark_grey_900
       |> UIView.lens.layoutMargins .~ .init(topBottom: Styles.gridHalf(1), leftRight: Styles.grid(1))
 
     _ = self.allGoneLabel
@@ -109,7 +112,8 @@ internal final class RewardCell: UITableViewCell, ValueCell {
       |> UILabel.lens.text %~ { _ in Strings.All_gone() }
 
     _ = self.cardView
-      |> dropShadowStyle()
+      |> darkCardStyle(cornerRadius: 0)
+      |> UIView.lens.backgroundColor .~ .white
 
     _ = self.minimumLabel
       |> UILabel.lens.font .~ .ksr_title2(size: 24)
@@ -123,25 +127,34 @@ internal final class RewardCell: UITableViewCell, ValueCell {
 
     _ = self.descriptionLabel
       |> UILabel.lens.font .~ .ksr_body(size: 16)
-      |> UILabel.lens.textColor .~ .ksr_text_navy_500
+      |> UILabel.lens.textColor .~ .ksr_text_dark_grey_400
       |> UILabel.lens.numberOfLines .~ 0
 
     _ = self.estimatedDeliveryLabel
-      |> UILabel.lens.text %~ { _ in Strings.Estimated_delivery() }
+      |> UILabel.lens.text %~ { _ in Strings.Estimated_delivery().uppercased() }
       |> UILabel.lens.font .~ .ksr_caption1(size: 12)
-      |> UILabel.lens.textColor .~ .ksr_text_navy_500
+      |> UILabel.lens.textColor .~ .ksr_text_dark_grey_400
 
     _ = self.estimatedDeliveryDateLabel
-      |> UILabel.lens.font .~ .ksr_caption1(size: 12)
-      |> UILabel.lens.textColor .~ .ksr_text_navy_600
+      |> UILabel.lens.font .~ .ksr_caption1(size: 13)
+      |> UILabel.lens.textColor .~ .ksr_text_dark_grey_900
 
     _ = self.includesTitleLabel
       |> UILabel.lens.font .~ .ksr_headline(size: 13)
-      |> UILabel.lens.textColor .~ .ksr_text_navy_700
+      |> UILabel.lens.textColor .~ .ksr_text_dark_grey_500
       |> UILabel.lens.text %~ { _ in Strings.rewards_info_includes() }
 
+    _ = self.shippingLocationsLabel
+      |> UILabel.lens.text %~ { _ in Strings.Ships_to().uppercased() }
+      |> UILabel.lens.font .~ .ksr_caption1(size: 12)
+      |> UILabel.lens.textColor .~ .ksr_text_dark_grey_400
+
+    _ = self.shippingLocationsSummaryLabel
+      |> UILabel.lens.font .~ .ksr_caption1(size: 13)
+      |> UILabel.lens.textColor .~ .ksr_text_dark_grey_900
+
     _ = self.youreABackerCheckmarkImageView
-      |> UIImageView.lens.tintColor .~ .ksr_text_navy_700
+      |> UIImageView.lens.tintColor .~ .ksr_text_dark_grey_500
       |> UIImageView.lens.image %~ { _ in
         UIImage(named: "checkmark-icon", in: .framework, compatibleWith: nil)
     }
@@ -164,13 +177,14 @@ internal final class RewardCell: UITableViewCell, ValueCell {
 
     _ = self.footerLabel
       |> UILabel.lens.font .~ .ksr_caption1(size: 13)
-      |> UILabel.lens.textColor .~ .ksr_text_navy_700
+      |> UILabel.lens.textColor .~ .ksr_text_dark_grey_900
 
     _ = self.separatorViews
       ||> separatorStyle
 
     _ = self.selectRewardButton
       |> greenButtonStyle
+      |> UIButton.lens.layer.cornerRadius .~ 0
       |> UIButton.lens.userInteractionEnabled .~ false
       |> UIButton.lens.isAccessibilityElement .~ false
 
@@ -188,13 +202,11 @@ internal final class RewardCell: UITableViewCell, ValueCell {
 
     self.viewModel.inputs.boundStyles()
   }
-  // swiftlint:enable function_body_length
 
-    internal override func bindViewModel() {
+  internal override func bindViewModel() {
     super.bindViewModel()
 
     self.allGoneContainerView.rac.hidden = self.viewModel.outputs.allGoneHidden
-    self.cardView.rac.backgroundColor = self.viewModel.outputs.cardViewBackgroundColor
     self.conversionLabel.rac.hidden = self.viewModel.outputs.conversionLabelHidden
     self.conversionLabel.rac.text = self.viewModel.outputs.conversionLabelText
     self.conversionLabel.rac.textColor = self.viewModel.outputs.minimumAndConversionLabelsColor
@@ -212,15 +224,11 @@ internal final class RewardCell: UITableViewCell, ValueCell {
     self.rewardTitleLabel.rac.textColor = self.viewModel.outputs.titleLabelTextColor
     self.selectRewardButton.rac.hidden = self.viewModel.outputs.pledgeButtonHidden
     self.selectRewardButton.rac.title = self.viewModel.outputs.pledgeButtonTitleText
+    self.shippingLocationsStackView.rac.hidden = self.viewModel.outputs.shippingLocationsStackViewHidden
+    self.shippingLocationsSummaryLabel.rac.text = self.viewModel.outputs.shippingLocationsSummaryLabelText
     self.viewYourPledgeButton.rac.hidden = self.viewModel.outputs.viewPledgeButtonHidden
     self.youreABackerContainerView.rac.hidden = self.viewModel.outputs.youreABackerViewHidden
     self.youreABackerLabel.rac.text = self.viewModel.outputs.youreABackerLabelText
-
-    self.viewModel.outputs.cardViewDropShadowHidden
-      .observeForUI()
-      .observeValues { [weak self] hidden in
-        self?.cardView.layer.shadowOpacity = hidden ? 0 : 1
-    }
 
     self.viewModel.outputs.notifyDelegateRewardCellWantsExpansion
       .observeForUI()
@@ -238,7 +246,6 @@ internal final class RewardCell: UITableViewCell, ValueCell {
       .observeForUI()
       .observeValues { [weak self] in self?.load(items: $0) }
   }
-  // swiftlint:enable function_body_length
 
   fileprivate func load(items: [String]) {
     self.itemsStackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
@@ -246,7 +253,7 @@ internal final class RewardCell: UITableViewCell, ValueCell {
     for item in items {
       let label = UILabel()
         |> UILabel.lens.font .~ .ksr_body(size: 14)
-        |> UILabel.lens.textColor .~ .ksr_text_navy_600
+        |> UILabel.lens.textColor .~ .ksr_text_dark_grey_500
         |> UILabel.lens.text .~ item
         |> UILabel.lens.numberOfLines .~ 0
 

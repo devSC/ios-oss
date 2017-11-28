@@ -2,6 +2,7 @@ import Library
 import Prelude
 import UIKit
 
+// swiftlint:disable line_length
 internal final class DebugPushNotificationsViewController: UIViewController {
 
   @IBOutlet fileprivate weak var rootStackView: UIStackView!
@@ -46,7 +47,7 @@ internal final class DebugPushNotificationsViewController: UIViewController {
       ||> UILabel.lens.font .~ .ksr_title1(size: 22)
 
     _ = rowStackViews.flatMap { $0.arrangedSubviews.first as? UILabel }
-      ||> UILabel.lens.textColor .~ .ksr_text_navy_900
+      ||> UILabel.lens.textColor .~ .ksr_dark_grey_900
       ||> UILabel.lens.font .~ .ksr_body()
 
     _ = buttons
@@ -72,7 +73,6 @@ internal final class DebugPushNotificationsViewController: UIViewController {
     _ = self.separatorViews
       ||> separatorStyle
   }
-  // swiftlint:enable function_body_length
 
   @objc fileprivate func inAppButtonTapped(_ button: UIButton) {
     self.scheduleNotification(forIndex: button.tag, delay: false)
@@ -89,13 +89,13 @@ internal final class DebugPushNotificationsViewController: UIViewController {
 
     let notification = UILocalNotification()
     notification.fireDate = Date(timeIntervalSinceNow: delay ? 5 : 0)
-    notification.alertBody = (pushData["aps"] as? [String:AnyObject])?["alert"] as? String
+    notification.alertBody = (pushData["aps"] as? [String: AnyObject])?["alert"] as? String
     notification.userInfo = pushData
     UIApplication.shared.scheduleLocalNotification(notification)
   }
 }
 
-private let backingPushData: [String:Any] = [
+private let backingPushData: [String: Any] = [
   "aps": [
     "alert": "Blob McBlobby backed Double Fine Adventure."
   ],
@@ -106,7 +106,7 @@ private let backingPushData: [String:Any] = [
   ]
 ]
 
-private let updatePushData: [String:Any] = [
+private let updatePushData: [String: Any] = [
   "aps": [
     "alert": "Update #6 posted by Double Fine Adventure."
   ],
@@ -118,7 +118,7 @@ private let updatePushData: [String:Any] = [
   ]
 ]
 
-private let successPushData: [String:Any] = [
+private let successPushData: [String: Any] = [
   "aps": [
     "alert": "Double Fine Adventure has been successfully funded!"
   ],
@@ -129,7 +129,7 @@ private let successPushData: [String:Any] = [
   ]
 ]
 
-private let failurePushData: [String:Any] = [
+private let failurePushData: [String: Any] = [
   "aps": [
     "alert": "Double Fine Adventure was not successfully funded."
   ],
@@ -140,7 +140,7 @@ private let failurePushData: [String:Any] = [
   ]
 ]
 
-private let cancellationPushData: [String:Any] = [
+private let cancellationPushData: [String: Any] = [
   "aps": [
     "alert": "Double Fine Adventure has been canceled."
   ],
@@ -151,7 +151,7 @@ private let cancellationPushData: [String:Any] = [
   ]
 ]
 
-private let followPushData: [String:Any] = [
+private let followPushData: [String: Any] = [
   "aps": [
     "alert": "Blob McBlobby is following you on Kickstarter!"
   ],
@@ -161,17 +161,17 @@ private let followPushData: [String:Any] = [
   ]
 ]
 
-private let messagePushData: [String:Any] = [
+private let messagePushData: [String: Any] = [
   "aps": [
     "alert": "Chinati Foundation sent you a message about Robert Irwin Project."
   ],
   "message": [
-    "message_thread_id": 15112157,
-    "project_id": 684720856
+    "message_thread_id": 17848074,
+    "project_id": 820501933
   ]
 ]
 
-private let surveyPushData: [String:Any] = [
+private let surveyPushData: [String: Any] = [
   "aps": [
     "alert": "Response needed! Get your reward for backing Help Me Transform This Pile of Wood.",
   ],
@@ -181,7 +181,17 @@ private let surveyPushData: [String:Any] = [
   ]
 ]
 
-private let backingForCreatorPushData: [String:Any] = [
+private let reminderPushData: [String: Any] = [
+  "aps": [
+    "alert": "Reminder! This Pile of Wood is ending soon.",
+  ],
+  "project": [
+    "photo": "https://ksr-ugc.imgix.net/assets/012/224/660/847bc4da31e6863e9351bee4e55b8005_original.jpg?w=160&h=90&fit=fill&bg=FBFAF8&v=1464773625&auto=format&q=92&s=fc738d87d861a96333e9f93bee680c27",
+    "id": 820501933,
+  ]
+]
+
+private let backingForCreatorPushData: [String: Any] = [
   "aps": [
     "alert": "New backer! Blob has pledged $50 to Help Me Transform This Pile Of Wood."
   ],
@@ -193,18 +203,18 @@ private let backingForCreatorPushData: [String:Any] = [
   "for_creator": true
 ]
 
-private let messageForCreatorPushData: [String:Any] = [
+private let messageForCreatorPushData: [String: Any] = [
   "aps": [
     "alert": "Blob McBlobby sent you a message about Help Me Transform This Pile Of Wood."
   ],
   "message": [
-    "message_thread_id": 1,
+    "message_thread_id": 17848074,
     "project_id": 820501933
   ],
   "for_creator": true
 ]
 
-private let failureForCreatorPushData: [String:Any] = [
+private let failureForCreatorPushData: [String: Any] = [
   "aps": [
     "alert": "Help Me Transform This Pile Of Wood was not successfully funded."
   ],
@@ -216,7 +226,7 @@ private let failureForCreatorPushData: [String:Any] = [
   "for_creator": true
 ]
 
-private let successForCreatorPushData: [String:Any] = [
+private let successForCreatorPushData: [String: Any] = [
   "aps": [
     "alert": "Help Me Transform This Pile Of Wood has been successfully funded!"
   ],
@@ -228,7 +238,7 @@ private let successForCreatorPushData: [String:Any] = [
   "for_creator": true
 ]
 
-private let cancellationForCreatorPushData: [String:Any] = [
+private let cancellationForCreatorPushData: [String: Any] = [
   "aps": [
     "alert": "Help Me Transform This Pile Of Wood has been canceled."
   ],
@@ -240,7 +250,7 @@ private let cancellationForCreatorPushData: [String:Any] = [
   "for_creator": true
 ]
 
-private let projectCommentForCreatorPushData: [String:Any] = [
+private let projectCommentForCreatorPushData: [String: Any] = [
   "aps": [
     "alert": "New comment! Blob has commented on Help Me Transform This Pile Of Wood."
   ],
@@ -252,7 +262,7 @@ private let projectCommentForCreatorPushData: [String:Any] = [
   "for_creator": true
 ]
 
-private let updateCommentForCreatorPushData: [String:Any] = [
+private let updateCommentForCreatorPushData: [String: Any] = [
   "aps": [
     "alert": "New comment! Blob has commented on update #11."
   ],
@@ -265,7 +275,7 @@ private let updateCommentForCreatorPushData: [String:Any] = [
   "for_creator": true
 ]
 
-private let postLikeForCreatorPushData: [String:Any] = [
+private let postLikeForCreatorPushData: [String: Any] = [
   "aps": [
     "alert": "Blob liked your update: Important message from Tim..."
   ],
@@ -276,7 +286,7 @@ private let postLikeForCreatorPushData: [String:Any] = [
   "for_creator": true
 ]
 
-private let allPushData: [[String:Any]] = [
+private let allPushData: [[String: Any]] = [
   backingPushData,
   updatePushData,
   successPushData,
@@ -285,6 +295,7 @@ private let allPushData: [[String:Any]] = [
   followPushData,
   messagePushData,
   surveyPushData,
+  reminderPushData,
   backingForCreatorPushData,
   messageForCreatorPushData,
   failureForCreatorPushData,

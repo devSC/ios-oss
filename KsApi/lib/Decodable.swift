@@ -1,6 +1,6 @@
 import Argo
 
-public extension Decodable {
+public extension Argo.Decodable {
   /**
    Decode a JSON dictionary into a `Decoded` type.
 
@@ -8,7 +8,7 @@ public extension Decodable {
 
    - returns: A decoded value.
    */
-  public static func decodeJSONDictionary(_ json: [String:Any]) -> Decoded<DecodedType> {
+  public static func decodeJSONDictionary(_ json: [String: Any]) -> Decoded<DecodedType> {
     return Self.decode(JSON(json))
   }
 }

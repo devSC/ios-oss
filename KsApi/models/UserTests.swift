@@ -2,7 +2,6 @@ import XCTest
 @testable import KsApi
 import Prelude
 
-// swiftlint:disable force_cast
 final class UserTests: XCTestCase {
 
   func testEquatable() {
@@ -15,7 +14,7 @@ final class UserTests: XCTestCase {
   }
 
   func testJsonParsing() {
-    let json: [String:Any] = [
+    let json: [String: Any] = [
       "id": 1,
       "name": "Blob",
       "avatar": [
@@ -33,6 +32,7 @@ final class UserTests: XCTestCase {
         "country": "US",
         "id": 12,
         "displayable_name": "Brooklyn, NY",
+        "localized_name": "Brooklyn, NY",
         "name": "Brooklyn"
       ],
       "is_friend": false
@@ -56,7 +56,7 @@ final class UserTests: XCTestCase {
   }
 
   func testJsonEncoding() {
-    let json: [String:Any] = [
+    let json: [String: Any] = [
       "id": 1,
       "name": "Blob",
       "avatar": [
@@ -75,6 +75,7 @@ final class UserTests: XCTestCase {
         "country": "US",
         "id": 12,
         "displayable_name": "Brooklyn, NY",
+        "localized_name": "Brooklyn, NY",
         "name": "Brooklyn"
       ],
       "is_friend": false

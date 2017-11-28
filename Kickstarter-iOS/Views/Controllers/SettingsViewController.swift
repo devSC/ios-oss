@@ -9,6 +9,9 @@ internal final class SettingsViewController: UIViewController {
   fileprivate let viewModel: SettingsViewModelType = SettingsViewModel()
   fileprivate let helpViewModel: HelpViewModelType = HelpViewModel()
 
+  @IBOutlet fileprivate weak var emailFrequencyArrow: UIImageView!
+  @IBOutlet fileprivate weak var artsAndCultureNewsLabel: UILabel!
+  @IBOutlet fileprivate weak var artsAndCultureNewsletterSwitch: UISwitch!
   @IBOutlet fileprivate weak var backingsButton: UIButton!
   @IBOutlet fileprivate weak var betaDebugPushNotificationsButton: UIButton!
   @IBOutlet fileprivate weak var betaFeedbackButton: UIButton!
@@ -21,6 +24,10 @@ internal final class SettingsViewController: UIViewController {
   @IBOutlet fileprivate weak var cookiePolicyLabel: UILabel!
   @IBOutlet fileprivate weak var creatorNotificationsTitleLabel: UILabel!
   @IBOutlet fileprivate weak var creatorStackView: UIStackView!
+  @IBOutlet fileprivate weak var creatorTips: UILabel!
+  @IBOutlet fileprivate weak var creatorTipsButton: UIButton!
+  @IBOutlet fileprivate weak var emailFrequencyButton: UIButton!
+  @IBOutlet fileprivate weak var emailFrequencyLabel: UILabel!
   @IBOutlet fileprivate weak var faqButton: UIButton!
   @IBOutlet fileprivate weak var faqLabel: UILabel!
   @IBOutlet fileprivate weak var findFriendsButton: UIButton!
@@ -34,6 +41,8 @@ internal final class SettingsViewController: UIViewController {
   @IBOutlet fileprivate weak var helpTitleLabel: UILabel!
   @IBOutlet fileprivate weak var howKsrWorksButton: UIButton!
   @IBOutlet fileprivate weak var howKsrWorksLabel: UILabel!
+  @IBOutlet fileprivate weak var inventLabel: UILabel!
+  @IBOutlet fileprivate weak var inventNewsletterSwitch: UISwitch!
   @IBOutlet fileprivate weak var ksrLovesGamesLabel: UILabel!
   @IBOutlet fileprivate weak var ksrNewsAndEventsLabel: UILabel!
   @IBOutlet fileprivate weak var logoutButton: UIButton!
@@ -99,6 +108,8 @@ internal final class SettingsViewController: UIViewController {
                                       action: #selector(cookiePolicyTapped),
                                       for: .touchUpInside)
 
+    self.emailFrequencyButton.addTarget(self, action: #selector(emailFrequencyTapped), for: .touchUpInside)
+
     self.faqButton.addTarget(self, action: #selector(faqTapped), for: .touchUpInside)
 
     self.findFriendsButton.addTarget(self,
@@ -135,10 +146,15 @@ internal final class SettingsViewController: UIViewController {
       |> baseControllerStyle()
       |> UIViewController.lens.title %~ { _ in Strings.profile_settings_navbar_title() }
 
+    _ = self.artsAndCultureNewsLabel
+      |> settingsSectionLabelStyle
+      |> UILabel.lens.text %~ { _ in Strings.profile_settings_newsletter_arts() }
+
     _ = self.betaDebugPushNotificationsButton
-      |> UIButton.lens.titleColor(forState: .normal) .~ .ksr_text_navy_700
+      |> UIButton.lens.titleColor(forState: .normal) .~ .ksr_text_dark_grey_900
       |> UIButton.lens.titleLabel.font .~ .ksr_body()
       |> UIButton.lens.contentHorizontalAlignment .~ .left
+      |> UIButton.lens.title(forState: .normal) .~ "Debug push notifications"
 
     _ = self.betaFeedbackButton
       |> greenButtonStyle
@@ -169,12 +185,21 @@ internal final class SettingsViewController: UIViewController {
       |> settingsTitleLabelStyle
       |> UILabel.lens.text %~ { _ in Strings.profile_settings_creator_title() }
 
+    _ = self.creatorTips
+      |> settingsSectionLabelStyle
+      |> UILabel.lens.text %~ { _ in Strings.Creator_tips() }
+
+    _ = self.emailFrequencyLabel
+      |> UILabel.lens.font .~ .ksr_body()
+      |> UILabel.lens.numberOfLines .~ 2
+      |> UILabel.lens.text %~ { _ in Strings.Email_frequency() }
+
     _ = self.emailNotificationButtons
       ||> settingsNotificationIconButtonStyle
       ||> UIButton.lens.image(forState: .normal)
         .~ UIImage(named: "email-icon", in: .framework, compatibleWith: nil)
       ||> UIButton.lens.image(forState: .selected)
-        .~ image(named: "email-icon", tintColor: .ksr_green_400, inBundle: Bundle.framework)
+        .~ image(named: "email-icon", tintColor: .ksr_green_700, inBundle: Bundle.framework)
       ||> UIButton.lens.accessibilityLabel %~ { _ in Strings.Email_notifications() }
 
     _ = self.faqButton
@@ -213,6 +238,10 @@ internal final class SettingsViewController: UIViewController {
       |> settingsSectionLabelStyle
       |> UILabel.lens.text %~ { _ in Strings.profile_settings_about_how_it_works() }
 
+    _ = self.inventLabel
+      |> settingsSectionLabelStyle
+      |> UILabel.lens.text %~ { _ in Strings.profile_settings_newsletter_invent() }
+
     _ = self.ksrLovesGamesLabel
       |> settingsSectionLabelStyle
       |> UILabel.lens.text %~ { _ in Strings.profile_settings_newsletter_games() }
@@ -245,7 +274,7 @@ internal final class SettingsViewController: UIViewController {
 
     _ = self.newPledgesLabel
       |> settingsSectionLabelStyle
-      |> UILabel.lens.text %~ { _ in Strings.profile_settings_creator_pledges() }
+      |> UILabel.lens.text %~ { _ in Strings.New_pledge_activity() }
 
     _ = self.newslettersTitleLabel
       |> settingsTitleLabelStyle
@@ -274,9 +303,9 @@ internal final class SettingsViewController: UIViewController {
     _ = self.pushNotificationButtons
       ||> settingsNotificationIconButtonStyle
       ||> UIButton.lens.image(forState: .normal)
-        .~ UIImage(named: "phone-icon", in: .framework, compatibleWith: nil)
+        .~ UIImage(named: "mobile-icon", in: .framework, compatibleWith: nil)
       ||> UIButton.lens.image(forState: .selected)
-        .~ image(named: "phone-icon", tintColor: .ksr_green_400, inBundle: Bundle.framework)
+        .~ image(named: "mobile-icon", tintColor: .ksr_green_700, inBundle: Bundle.framework)
       ||> UIButton.lens.accessibilityLabel %~ { _ in Strings.Push_notifications() }
 
     _ = self.rateUsButton
@@ -350,6 +379,12 @@ internal final class SettingsViewController: UIViewController {
         self?.goToFindFriends()
     }
 
+    self.viewModel.outputs.goToEmailFrequency
+      .observeForControllerAction()
+      .observeValues { [weak self] user in
+        self?.goToEmailFrequency(user: user)
+      }
+
     self.viewModel.outputs.goToBetaFeedback
       .observeForControllerAction()
       .observeValues { [weak self] in self?.goToBetaFeedback() }
@@ -375,14 +410,24 @@ internal final class SettingsViewController: UIViewController {
         self?.goToHelpType(helpType)
     }
 
+    self.viewModel.outputs.emailFrequencyButtonEnabled
+      .observeForUI()
+      .observeValues { [weak self] enabled in
+        self?.emailFrequencyLabel.textColor = enabled ? .ksr_text_dark_grey_500 : .ksr_text_dark_grey_400
+        self?.emailFrequencyArrow.alpha = enabled ? 1.0 : 0.5
+      }
+
+    self.artsAndCultureNewsletterSwitch.rac.on = self.viewModel.outputs.artsAndCultureNewsletterOn
     self.backingsButton.rac.selected = self.viewModel.outputs.backingsSelected
     self.betaToolsStackView.rac.hidden = self.viewModel.outputs.betaToolsHidden
     self.commentsButton.rac.selected = self.viewModel.outputs.commentsSelected
     self.creatorStackView.rac.hidden = self.viewModel.outputs.creatorNotificationsHidden
+      self.creatorTipsButton.rac.selected = self.viewModel.outputs.creatorTipsSelected
     self.followerButton.rac.selected = self.viewModel.outputs.followerSelected
     self.friendActivityButton.rac.selected = self.viewModel.outputs.friendActivitySelected
     self.gamesNewsletterSwitch.rac.on = self.viewModel.outputs.gamesNewsletterOn
     self.happeningNewsletterSwitch.rac.on = self.viewModel.outputs.happeningNewsletterOn
+    self.inventNewsletterSwitch.rac.on = self.viewModel.outputs.inventNewsletterOn
     self.manageProjectNotificationsButton.rac.accessibilityHint =
       self.viewModel.outputs.manageProjectNotificationsButtonAccessibilityHint
     self.mobileBackingsButton.rac.selected = self.viewModel.outputs.mobileBackingsSelected
@@ -397,6 +442,7 @@ internal final class SettingsViewController: UIViewController {
     self.updatesButton.rac.selected = self.viewModel.outputs.updatesSelected
     self.weeklyNewsletterSwitch.rac.on = self.viewModel.outputs.weeklyNewsletterOn
     self.versionLabel.rac.text = self.viewModel.outputs.versionText
+    self.emailFrequencyButton.rac.enabled = self.viewModel.outputs.emailFrequencyButtonEnabled
   }
   // swiftlint:enable function_body_length
 
@@ -427,6 +473,11 @@ internal final class SettingsViewController: UIViewController {
 
     controller.mailComposeDelegate = self
     self.present(controller, animated: true, completion: nil)
+  }
+
+  fileprivate func goToEmailFrequency(user: User) {
+    let vc = CreatorDigestSettingsViewController.configureWith(user: user)
+    self.navigationController?.pushViewController(vc, animated: true)
   }
 
   fileprivate func goToFindFriends() {
@@ -493,6 +544,10 @@ internal final class SettingsViewController: UIViewController {
     self.viewModel.inputs.logoutTapped()
   }
 
+  @IBAction fileprivate func artsAndCultureNewsletterTapped(_ newsletterSwitch: UISwitch) {
+    self.viewModel.inputs.artsAndCultureNewsletterTapped(on: newsletterSwitch.isOn)
+  }
+
   @IBAction fileprivate func backingsTapped(_ button: UIButton) {
     self.viewModel.inputs.backingsTapped(selected: !button.isSelected)
   }
@@ -507,6 +562,14 @@ internal final class SettingsViewController: UIViewController {
 
   @objc fileprivate func cookiePolicyTapped() {
     self.helpViewModel.inputs.helpTypeButtonTapped(.cookie)
+  }
+
+  @IBAction fileprivate func creatorTipsTapped(_ button: UIButton) {
+    self.viewModel.inputs.creatorTipsTapped(selected: !button.isSelected)
+  }
+
+  @objc fileprivate func emailFrequencyTapped() {
+    self.viewModel.inputs.emailFrequencyTapped()
   }
 
   @objc fileprivate func faqTapped() {
@@ -531,6 +594,10 @@ internal final class SettingsViewController: UIViewController {
 
   @IBAction fileprivate func happeningNewsletterTapped(_ newsletterSwitch: UISwitch) {
     self.viewModel.inputs.happeningNewsletterTapped(on: newsletterSwitch.isOn)
+  }
+
+  @IBAction fileprivate func inventNewsletterTapped(_ newsletterSwitch: UISwitch) {
+    self.viewModel.inputs.inventNewsletterTapped(on: newsletterSwitch.isOn)
   }
 
   @objc fileprivate func howKickstarterWorksTapped() {

@@ -4,6 +4,7 @@ import Prelude
 import ReactiveSwift
 import ReactiveExtensions
 import Social
+import StoreKit
 import UIKit
 
 internal final class ThanksViewController: UIViewController, UICollectionViewDelegate {
@@ -54,15 +55,15 @@ internal final class ThanksViewController: UIViewController, UICollectionViewDel
     _ = self |> baseControllerStyle()
 
     _ = self.woohooLabel
-      |> UILabel.lens.textColor .~ .white
+      |> UILabel.lens.textColor .~ .ksr_text_dark_grey_900
       |> UILabel.lens.font .~ UIFont.ksr_title2().bolded
       |> UILabel.lens.text %~ { _ in Strings.project_checkout_share_exclamation() }
       |> UILabel.lens.isAccessibilityElement .~ false
 
-    _ = self.backedLabel |> UILabel.lens.textColor .~ .ksr_text_navy_900
+    _ = self.backedLabel |> UILabel.lens.textColor .~ .ksr_text_dark_grey_900
 
     _ = self.recommendationsLabel
-      |> UILabel.lens.textColor .~ .ksr_text_navy_900
+      |> UILabel.lens.textColor .~ .ksr_text_dark_grey_900
       |> UILabel.lens.font .~ .ksr_subhead()
       |> UILabel.lens.text %~ { _ in Strings.project_checkout_looking_for_more_projects_check_these_out() }
 
@@ -78,10 +79,9 @@ internal final class ThanksViewController: UIViewController, UICollectionViewDel
 
     _ = self.shareMoreButton
       |> borderButtonStyle
+      |> UIButton.lens.layer.cornerRadius .~ 0
       |> UIButton.lens.targets .~ [(self, #selector(shareMoreButtonTapped), .touchUpInside)]
-      |> UIButton.lens.title(forState: .normal) %~ { _ in
-        Strings.project_checkout_share_buttons_more_share_options()
-    }
+      |> UIButton.lens.title(forState: .normal) %~ { _ in Strings.Share() }
 
     _ = self.doneButton
       |> doneBarButtonItemStyle
@@ -161,7 +161,6 @@ internal final class ThanksViewController: UIViewController, UICollectionViewDel
       .observeForControllerAction()
       .observeValues { [weak self] in self?.showShareCompose($0) }
   }
-  // swiftlint:enable function_body_length
 
   fileprivate func goToDiscovery(params: DiscoveryParams) {
     self.view.window?.rootViewController
@@ -185,18 +184,22 @@ internal final class ThanksViewController: UIViewController, UICollectionViewDel
   }
 
   fileprivate func showRatingAlert() {
-    self.present(
-      UIAlertController.rating(
-        yesHandler: { [weak self] _ in
-          self?.viewModel.inputs.rateNowButtonTapped()
-        }, remindHandler: { [weak self] _ in
-          self?.viewModel.inputs.rateRemindLaterButtonTapped()
-        }, noHandler: { [weak self] _ in
-          self?.viewModel.inputs.rateNoThanksButtonTapped()
-      }),
-      animated: true,
-      completion: nil
-    )
+    if #available(iOS 10.3, *) {
+      SKStoreReviewController.requestReview()
+    } else {
+      self.present(
+        UIAlertController.rating(
+          yesHandler: { [weak self] _ in
+            self?.viewModel.inputs.rateNowButtonTapped()
+          }, remindHandler: { [weak self] _ in
+            self?.viewModel.inputs.rateRemindLaterButtonTapped()
+          }, noHandler: { [weak self] _ in
+            self?.viewModel.inputs.rateNoThanksButtonTapped()
+        }),
+        animated: true,
+        completion: nil
+      )
+    }
   }
 
   fileprivate func showGamesNewsletterAlert() {

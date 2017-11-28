@@ -4,10 +4,13 @@ import Library
 import Prelude
 import UIKit
 
-// Called when the share button is tapped
 internal protocol DiscoveryPostcardCellDelegate: class {
-  func discoveryPostcard(cell: DiscoveryPostcardCell, tappedShare context: ShareContext,
-                         fromSourceView: UIView)
+
+  /// Called when the heart/save button is tapped
+  func discoveryPostcardCellProjectSaveAlert()
+
+  /// Called when logged out user taps heart/save button
+  func discoveryPostcardCellGoToLoginTout()
 }
 
 internal final class DiscoveryPostcardCell: UITableViewCell, ValueCell {
@@ -36,18 +39,31 @@ internal final class DiscoveryPostcardCell: UITableViewCell, ValueCell {
   @IBOutlet fileprivate weak var projectStateTitleLabel: UILabel!
   @IBOutlet fileprivate weak var projectStateStackView: UIStackView!
   @IBOutlet fileprivate weak var projectStatsStackView: UIStackView!
-  @IBOutlet fileprivate weak var shareAndStarStackView: UIStackView!
-  @IBOutlet fileprivate weak var shareButton: UIButton!
+  @IBOutlet fileprivate weak var saveButton: UIButton!
   @IBOutlet fileprivate weak var socialAvatarImageView: UIImageView!
   @IBOutlet fileprivate weak var socialLabel: UILabel!
   @IBOutlet fileprivate weak var socialStackView: UIStackView!
-  @IBOutlet fileprivate weak var starButton: UIButton!
 
     internal override func awakeFromNib() {
     super.awakeFromNib()
 
-    self.starButton.addTarget(self, action: #selector(starButtonTapped), for: .touchUpInside)
-    self.shareButton.addTarget(self, action: #selector(shareButtonTapped), for: .touchUpInside)
+    self.saveButton.addTarget(self, action: #selector(saveButtonTapped), for: .touchUpInside)
+
+    NotificationCenter.default
+      .addObserver(forName: Notification.Name.ksr_sessionStarted, object: nil, queue: nil) { [weak self] _ in
+        self?.viewModel.inputs.userSessionStarted()
+    }
+
+    NotificationCenter.default
+      .addObserver(forName: Notification.Name.ksr_sessionEnded, object: nil, queue: nil) { [weak self] _ in
+        self?.viewModel.inputs.userSessionEnded()
+    }
+
+    NotificationCenter.default
+      .addObserver(forName: Notification.Name.ksr_projectSaved, object: nil, queue: nil) { [weak self]
+        notification in
+        self?.viewModel.inputs.projectFromNotification(project: notification.userInfo?["project"] as? Project)
+      }
   }
 
   internal override func bindStyles() {
@@ -62,7 +78,6 @@ internal final class DiscoveryPostcardCell: UITableViewCell, ValueCell {
 
     _ = self
       |> baseTableViewCellStyle()
-      |> DiscoveryPostcardCell.lens.backgroundColor .~ .clear
       // Future: the top should adjust to grid(4) when there is metadata present.
       |> DiscoveryPostcardCell.lens.contentView.layoutMargins %~~ { _, cell in
         cell.traitCollection.isRegularRegular
@@ -81,30 +96,30 @@ internal final class DiscoveryPostcardCell: UITableViewCell, ValueCell {
 
     _ = [self.backersTitleLabel, self.backersSubtitleLabel, self.deadlineTitleLabel,
          self.deadlineSubtitleLabel]
-      ||> UILabel.lens.textColor .~ .ksr_text_navy_700
+      ||> UILabel.lens.textColor .~ .ksr_text_dark_grey_500
 
     _ = self.backersSubtitleLabel
       |> UILabel.lens.text %~ { _ in Strings.discovery_baseball_card_stats_backers() }
 
     _ = self.fundingTitleLabel
       |> postcardStatsTitleStyle
-      |> UILabel.lens.textColor .~ .ksr_text_green_700
+      |> UILabel.lens.textColor .~ .ksr_green_700
 
     _ = self.fundingSubtitleLabel
       |> UILabel.lens.text %~ { _ in Strings.discovery_baseball_card_stats_funded() }
-      |> UILabel.lens.textColor .~ .ksr_text_green_700
+      |> UILabel.lens.textColor .~ .ksr_green_700
 
     _ = self.cardView
-      |> dropShadowStyle()
+      |> cardStyle()
 
     _ = self.fundingProgressContainerView
       |> UIView.lens.backgroundColor .~ .ksr_navy_400
 
     _ = self.fundingProgressBarView
-      |> UIView.lens.backgroundColor .~ .ksr_green_400
+      |> UIView.lens.backgroundColor .~ .ksr_green_700
 
     _ = self.metadataIconImageView
-      |> UIImageView.lens.tintColor .~ .ksr_navy_700
+      |> UIImageView.lens.tintColor .~ .ksr_dark_grey_500
 
     _ = self.metadataLabel
       |> postcardMetadataLabelStyle
@@ -113,7 +128,7 @@ internal final class DiscoveryPostcardCell: UITableViewCell, ValueCell {
       |> postcardMetadataStackViewStyle
 
     _ = self.metadataBackgroundView
-      |> dropShadowStyle(radius: 0.5)
+      |> cardStyle()
 
     _ = self.projectInfoStackView
       |> UIStackView.lens.spacing .~ Styles.grid(4)
@@ -123,13 +138,13 @@ internal final class DiscoveryPostcardCell: UITableViewCell, ValueCell {
       |> UILabel.lens.lineBreakMode .~ .byTruncatingTail
 
     _ = self.projectStateSubtitleLabel
-      |> UILabel.lens.textColor .~ .ksr_text_navy_500
+      |> UILabel.lens.textColor .~ .ksr_text_dark_grey_500
       |> UILabel.lens.font .~ .ksr_body(size: 13)
-      |> UILabel.lens.numberOfLines .~ 2
+      |> UILabel.lens.numberOfLines .~ 1
+      |> UILabel.lens.lineBreakMode .~ .byTruncatingTail
 
     _ = self.projectStateTitleLabel
       |> UILabel.lens.font .~ .ksr_headline(size: 14)
-      |> UILabel.lens.numberOfLines .~ 2
 
     _ = self.projectStateStackView
       |> UIStackView.lens.spacing .~ Styles.grid(1)
@@ -137,8 +152,8 @@ internal final class DiscoveryPostcardCell: UITableViewCell, ValueCell {
     _ = self.projectStatsStackView
       |> UIStackView.lens.spacing .~ Styles.grid(4)
 
-    _ = self.shareAndStarStackView
-      |> UIStackView.lens.spacing .~ Styles.grid(5)
+    _ = self.saveButton
+      |> discoverySaveButtonStyle
 
     _ = self.socialAvatarImageView
       |> UIImageView.lens.layer.shouldRasterize .~ true
@@ -154,17 +169,9 @@ internal final class DiscoveryPostcardCell: UITableViewCell, ValueCell {
       |> UIStackView.lens.layoutMargins
         .~ .init(top: Styles.grid(2), left: Styles.grid(2), bottom: 0.0, right: Styles.grid(2))
       |> UIStackView.lens.layoutMarginsRelativeArrangement .~ true
-
-    _ = self.starButton
-      |> saveButtonStyle
-      |> UIButton.lens.hidden .~ true
-
-    _ = self.shareButton
-      |> shareButtonStyle
   }
-  // swiftlint:enable function_body_length
 
-    internal override func bindViewModel() {
+  internal override func bindViewModel() {
     super.bindViewModel()
 
     self.rac.accessibilityLabel = self.viewModel.outputs.cellAccessibilityLabel
@@ -176,6 +183,9 @@ internal final class DiscoveryPostcardCell: UITableViewCell, ValueCell {
     self.fundingProgressContainerView.rac.hidden = self.viewModel.outputs.fundingProgressContainerViewHidden
     self.fundingProgressBarView.rac.hidden = self.viewModel.outputs.fundingProgressBarViewHidden
     self.fundingTitleLabel.rac.text = self.viewModel.outputs.percentFundedTitleLabelText
+    self.metadataLabel.rac.text = self.viewModel.outputs.metadataLabelText
+    self.metadataLabel.rac.textColor = self.viewModel.outputs.metadataTextColor
+    self.metadataIconImageView.rac.tintColor = self.viewModel.outputs.metadataIconImageViewTintColor
     self.metadataView.rac.hidden = self.viewModel.outputs.metadataViewHidden
     self.projectNameAndBlurbLabel.rac.attributedText = self.viewModel.outputs.projectNameAndBlurbLabelText
     self.projectStateSubtitleLabel.rac.text = self.viewModel.outputs.projectStateSubtitleLabelText
@@ -185,15 +195,14 @@ internal final class DiscoveryPostcardCell: UITableViewCell, ValueCell {
     self.projectStatsStackView.rac.hidden = self.viewModel.outputs.projectStatsStackViewHidden
     self.socialLabel.rac.text = self.viewModel.outputs.socialLabelText
     self.socialStackView.rac.hidden = self.viewModel.outputs.socialStackViewHidden
+    self.saveButton.rac.selected = self.viewModel.outputs.saveButtonSelected
+    self.saveButton.rac.enabled = self.viewModel.outputs.saveButtonEnabled
 
-    self.viewModel.outputs.metadataData
+    self.viewModel.outputs.metadataIcon
       .observeForUI()
-      .observeValues { [weak self] data in
-        self?.metadataIconImageView.image = data.iconImage
-        self?.metadataLabel.text = data.labelText
-        self?.metadataIconImageView.tintColor = data.iconAndTextColor
-        self?.metadataLabel.textColor = data.iconAndTextColor
-    }
+      .observeValues { [weak self] icon in
+        self?.metadataIconImageView.image = icon
+     }
 
     self.viewModel.outputs.progressPercentage
       .observeForUI()
@@ -225,15 +234,21 @@ internal final class DiscoveryPostcardCell: UITableViewCell, ValueCell {
         self?.socialAvatarImageView.ksr_setImageWithURL(url)
     }
 
-    self.viewModel.outputs.notifyDelegateShareButtonTapped
+    self.viewModel.outputs.notifyDelegateShowSaveAlert
       .observeForUI()
-      .observeValues { [weak self] context in
+      .observeValues { [weak self] in
         guard let _self = self else { return }
-        _self.delegate?.discoveryPostcard(cell: _self, tappedShare: context,
-                                          fromSourceView: _self.shareButton)
+        _self.delegate?.discoveryPostcardCellProjectSaveAlert()
     }
+
+    self.viewModel.outputs.notifyDelegateShowLoginTout
+      .observeForControllerAction()
+      .observeValues { [weak self] in
+        guard let _self = self else { return }
+        _self.delegate?.discoveryPostcardCellGoToLoginTout()
+    }
+
   }
-  // swiftlint:enable function_body_length
 
   internal func configureWith(value: Project) {
     self.viewModel.inputs.configureWith(project: value)
@@ -249,12 +264,7 @@ internal final class DiscoveryPostcardCell: UITableViewCell, ValueCell {
     }
   }
 
-  @objc fileprivate func starButtonTapped() {
-    self.viewModel.inputs.starButtonTapped()
+  @objc fileprivate func saveButtonTapped() {
+    self.viewModel.inputs.saveButtonTapped()
   }
-
-  @objc fileprivate func shareButtonTapped() {
-    self.viewModel.inputs.shareButtonTapped()
-  }
-
 }

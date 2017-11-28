@@ -5,7 +5,7 @@ extension Project {
   internal static let template = Project(
     blurb: "A fun project.",
     category: .template,
-    country: .US,
+    country: .us,
     creator: .template |> User.lens.stats.createdProjectsCount .~ 1,
     memberData: Project.MemberData(
       lastUpdatePublishedAt: nil,
@@ -17,7 +17,6 @@ extension Project {
       deadline: Date(timeIntervalSince1970: 1475361315).timeIntervalSince1970 + 60.0 * 60.0 * 24.0 * 15.0,
       featuredAt: nil,
       launchedAt: Date(timeIntervalSince1970: 1475361315).timeIntervalSince1970 - 60.0 * 60.0 * 24.0 * 15.0,
-      potdAt: nil,
       stateChangedAt: Date(
         timeIntervalSince1970: 1475361315).timeIntervalSince1970 - 60.0 * 60.0 * 24.0 * 15.0
     ),
@@ -37,6 +36,8 @@ extension Project {
     stats: Project.Stats(
       backersCount: 10,
       commentsCount: 10,
+      currentCurrency: "USD",
+      currentCurrencyRate: 1.5,
       goal: 2_000,
       pledged: 1_000,
       staticUsdRate: 1.0,
@@ -73,6 +74,8 @@ extension Project {
     |> Project.lens.stats.pledged .~ 22_318
     |> Project.lens.stats.goal .~ 22_000
     |> Project.lens.stats.staticUsdRate .~ 1.31
+    |> Project.lens.stats.currentCurrency .~ "USD"
+    |> Project.lens.stats.currentCurrencyRate .~ 1.31
     |> (Project.lens.location..Location.lens.displayableName) .~ "Hastings, UK"
     |> Project.lens.rewards .~ [
       .template
@@ -138,7 +141,7 @@ extension Project {
             |> RewardsItem.lens.rewardId .~ 3,
       ]
     ]
-    |> Project.lens.country .~ .GB
+    |> Project.lens.country .~ .gb
     |> Project.lens.creator .~ (
       .template
         |> User.lens.id .~ "Alma Haser".hash

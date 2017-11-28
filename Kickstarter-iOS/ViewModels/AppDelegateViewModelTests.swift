@@ -5,6 +5,7 @@ import ReactiveExtensions
 import ReactiveSwift
 import Result
 import XCTest
+import UserNotifications
 @testable import Library
 @testable import LiveStream
 @testable import Kickstarter_Framework
@@ -14,12 +15,15 @@ import XCTest
 final class AppDelegateViewModelTests: TestCase {
   let vm: AppDelegateViewModelType = AppDelegateViewModel()
 
+  fileprivate let authorizeForRemoteNotifications = TestObserver<(), NoError>()
   fileprivate let configureHockey = TestObserver<HockeyConfigData, NoError>()
   private let findRedirectUrl = TestObserver<URL, NoError>()
   fileprivate let forceLogout = TestObserver<(), NoError>()
+  fileprivate let getNotificationAuthorizationStatus = TestObserver<(), NoError>()
   fileprivate let goToActivity = TestObserver<(), NoError>()
   fileprivate let goToDashboard = TestObserver<Param?, NoError>()
   fileprivate let goToDiscovery = TestObserver<DiscoveryParams?, NoError>()
+  private let goToProjectActivities = TestObserver<Param, NoError>()
   private let goToLiveStreamProject = TestObserver<Project, NoError>()
   private let goToLiveStreamLiveStreamEvent = TestObserver<LiveStreamEvent, NoError>()
   private let goToLiveStreamRefTag = TestObserver<RefTag?, NoError>()
@@ -31,7 +35,7 @@ final class AppDelegateViewModelTests: TestCase {
   fileprivate let presentRemoteNotificationAlert = TestObserver<String, NoError>()
   fileprivate let presentViewController = TestObserver<Int, NoError>()
   fileprivate let pushTokenSuccessfullyRegistered = TestObserver<(), NoError>()
-  fileprivate let registerUserNotificationSettings = TestObserver<(), NoError>()
+  fileprivate let registerForRemoteNotifications = TestObserver<(), NoError>()
   fileprivate let setApplicationShortcutItems = TestObserver<[ShortcutItem], NoError>()
   fileprivate let unregisterForRemoteNotifications = TestObserver<(), NoError>()
   fileprivate let updateCurrentUserInEnvironment = TestObserver<User, NoError>()
@@ -40,9 +44,12 @@ final class AppDelegateViewModelTests: TestCase {
   override func setUp() {
     super.setUp()
 
+    self.vm.outputs.authorizeForRemoteNotifications.observe(self.authorizeForRemoteNotifications.observer)
     self.vm.outputs.configureHockey.observe(self.configureHockey.observer)
     self.vm.outputs.findRedirectUrl.observe(self.findRedirectUrl.observer)
     self.vm.outputs.forceLogout.observe(self.forceLogout.observer)
+    self.vm.outputs.getNotificationAuthorizationStatus
+      .observe(self.getNotificationAuthorizationStatus.observer)
     self.vm.outputs.goToActivity.observe(self.goToActivity.observer)
     self.vm.outputs.goToDashboard.observe(self.goToDashboard.observer)
     self.vm.outputs.goToDiscovery.observe(self.goToDiscovery.observer)
@@ -52,13 +59,14 @@ final class AppDelegateViewModelTests: TestCase {
     self.vm.outputs.goToLogin.observe(self.goToLogin.observer)
     self.vm.outputs.goToProfile.observe(self.goToProfile.observer)
     self.vm.outputs.goToMobileSafari.observe(self.goToMobileSafari.observer)
+    self.vm.outputs.goToProjectActivities.observe(self.goToProjectActivities.observer)
     self.vm.outputs.goToSearch.observe(self.goToSearch.observer)
     self.vm.outputs.postNotification.map { $0.name }.observe(self.postNotificationName.observer)
     self.vm.outputs.presentRemoteNotificationAlert.observe(presentRemoteNotificationAlert.observer)
     self.vm.outputs.presentViewController.map { ($0 as! UINavigationController).viewControllers.count }
       .observe(self.presentViewController.observer)
     self.vm.outputs.pushTokenSuccessfullyRegistered.observe(self.pushTokenSuccessfullyRegistered.observer)
-    self.vm.outputs.registerUserNotificationSettings.observe(self.registerUserNotificationSettings.observer)
+    self.vm.outputs.registerForRemoteNotifications.observe(self.registerForRemoteNotifications.observer)
     self.vm.outputs.setApplicationShortcutItems.observe(self.setApplicationShortcutItems.observer)
     self.vm.outputs.unregisterForRemoteNotifications.observe(self.unregisterForRemoteNotifications.observer)
     self.vm.outputs.updateCurrentUserInEnvironment.observe(self.updateCurrentUserInEnvironment.observer)
@@ -557,36 +565,125 @@ final class AppDelegateViewModelTests: TestCase {
     self.goToSearch.assertValueCount(1)
   }
 
+  @available(iOS 10.0, *)
   func testRegisterUnregisterNotifications() {
     self.vm.inputs.applicationDidFinishLaunching(application: UIApplication.shared,
                                                  launchOptions: [:])
 
-    self.registerUserNotificationSettings.assertValueCount(0)
+    self.getNotificationAuthorizationStatus.assertValueCount(0)
+    self.authorizeForRemoteNotifications.assertValueCount(0)
+    self.registerForRemoteNotifications.assertValueCount(0)
     self.unregisterForRemoteNotifications.assertValueCount(0)
 
     withEnvironment(currentUser: .template) {
       self.vm.inputs.userSessionStarted()
 
-      self.registerUserNotificationSettings.assertValueCount(1)
+      self.getNotificationAuthorizationStatus.assertValueCount(1)
+      self.authorizeForRemoteNotifications.assertValueCount(0)
+      self.registerForRemoteNotifications.assertValueCount(0)
       self.unregisterForRemoteNotifications.assertValueCount(0)
 
       self.vm.inputs.applicationDidEnterBackground()
       self.vm.inputs.applicationWillEnterForeground()
 
-      self.registerUserNotificationSettings.assertValueCount(2)
+      self.getNotificationAuthorizationStatus.assertValueCount(2)
+      self.authorizeForRemoteNotifications.assertValueCount(0)
+      self.registerForRemoteNotifications.assertValueCount(0)
       self.unregisterForRemoteNotifications.assertValueCount(0)
 
-      self.vm.inputs.applicationDidEnterBackground()
-      self.vm.inputs.applicationWillEnterForeground()
+      self.vm.inputs.notificationAuthorizationStatusReceived(UNAuthorizationStatus.denied)
 
-      self.registerUserNotificationSettings.assertValueCount(3)
+      self.getNotificationAuthorizationStatus.assertValueCount(2)
+      self.authorizeForRemoteNotifications.assertValueCount(0)
+      self.registerForRemoteNotifications.assertValueCount(0)
+      self.unregisterForRemoteNotifications.assertValueCount(0)
+
+      self.vm.inputs.notificationAuthorizationStatusReceived(UNAuthorizationStatus.authorized)
+
+      self.getNotificationAuthorizationStatus.assertValueCount(2)
+      self.authorizeForRemoteNotifications.assertValueCount(0)
+      self.registerForRemoteNotifications.assertValueCount(0)
+      self.unregisterForRemoteNotifications.assertValueCount(0)
+
+      //Simulate initial notification authorization
+      self.vm.inputs.notificationAuthorizationStatusReceived(UNAuthorizationStatus.notDetermined)
+
+      self.getNotificationAuthorizationStatus.assertValueCount(2)
+      self.authorizeForRemoteNotifications.assertValueCount(1)
+      self.registerForRemoteNotifications.assertValueCount(0)
+      self.unregisterForRemoteNotifications.assertValueCount(0)
+
+      self.vm.inputs.notificationAuthorizationCompleted(isGranted: true)
+
+      self.getNotificationAuthorizationStatus.assertValueCount(2)
+      self.authorizeForRemoteNotifications.assertValueCount(1)
+      self.registerForRemoteNotifications.assertValueCount(1)
+      self.unregisterForRemoteNotifications.assertValueCount(0)
+
+      self.vm.inputs.notificationAuthorizationStatusReceived(UNAuthorizationStatus.authorized)
+
+      self.getNotificationAuthorizationStatus.assertValueCount(2)
+      self.authorizeForRemoteNotifications.assertValueCount(1)
+      self.registerForRemoteNotifications.assertValueCount(1)
       self.unregisterForRemoteNotifications.assertValueCount(0)
     }
 
     self.vm.inputs.userSessionEnded()
 
-    self.registerUserNotificationSettings.assertValueCount(3)
+    self.registerForRemoteNotifications.assertValueCount(1)
     self.unregisterForRemoteNotifications.assertValueCount(1)
+  }
+
+  @available(iOS 10.0, *)
+  func testTrackingPushAuthorizationOptIn() {
+    let client = MockTrackingClient()
+
+    withEnvironment(currentUser: .template, koala: Koala(client: client)) {
+      self.vm.inputs.userSessionStarted()
+
+      XCTAssertEqual([], client.events)
+
+      self.vm.inputs.applicationDidEnterBackground()
+      self.vm.inputs.applicationWillEnterForeground()
+
+      XCTAssertEqual(["App Close", "Closed App", "App Open", "Opened App"], client.events)
+
+      self.vm.inputs.notificationAuthorizationStatusReceived(UNAuthorizationStatus.notDetermined)
+
+      XCTAssertEqual(["App Close", "Closed App", "App Open", "Opened App"], client.events)
+
+      self.vm.inputs.notificationAuthorizationCompleted(isGranted: true)
+      self.vm.inputs.notificationAuthorizationStatusReceived(UNAuthorizationStatus.authorized)
+
+      XCTAssertEqual(["App Close", "Closed App", "App Open", "Opened App", "Confirmed Push Opt-In"],
+        client.events)
+    }
+  }
+
+  @available(iOS 10.0, *)
+  func testTrackingPushAuthorizationOptOut() {
+    let client = MockTrackingClient()
+
+    withEnvironment(currentUser: .template, koala: Koala(client: client)) {
+      self.vm.inputs.userSessionStarted()
+
+      XCTAssertEqual([], client.events)
+
+      self.vm.inputs.applicationDidEnterBackground()
+      self.vm.inputs.applicationWillEnterForeground()
+
+      XCTAssertEqual(["App Close", "Closed App", "App Open", "Opened App"], client.events)
+
+      self.vm.inputs.notificationAuthorizationStatusReceived(UNAuthorizationStatus.notDetermined)
+
+      XCTAssertEqual(["App Close", "Closed App", "App Open", "Opened App"], client.events)
+
+      self.vm.inputs.notificationAuthorizationCompleted(isGranted: true)
+      self.vm.inputs.notificationAuthorizationStatusReceived(UNAuthorizationStatus.denied)
+
+      XCTAssertEqual(["App Close", "Closed App", "App Open", "Opened App", "Dismissed Push Opt-In"],
+        client.events)
+    }
   }
 
   func testRegisterDeviceToken() {
@@ -668,7 +765,7 @@ final class AppDelegateViewModelTests: TestCase {
   }
 
   func testOpenNotification_NewBacking_ForCreator() {
-    let projectId = (backingForCreatorPushData["activity"] as? [String:AnyObject])
+    let projectId = (backingForCreatorPushData["activity"] as? [String: AnyObject])
       .flatMap { $0["project_id"] as? Int }
     let param = Param.id(projectId ?? -1)
 
@@ -677,12 +774,12 @@ final class AppDelegateViewModelTests: TestCase {
       launchOptions: [UIApplicationLaunchOptionsKey.remoteNotification: backingForCreatorPushData]
     )
 
-    self.goToDashboard.assertValues([param])
+    self.goToProjectActivities.assertValues([param])
   }
 
   func testOpenNotification_NewBacking_ForCreator_WithBadData() {
     var badPushData = backingForCreatorPushData
-    var badActivityData = badPushData["activity"] as? [String:AnyObject]
+    var badActivityData = badPushData["activity"] as? [String: AnyObject]
     badActivityData?["project_id"] = nil
     badPushData["activity"] = badActivityData
 
@@ -808,7 +905,7 @@ final class AppDelegateViewModelTests: TestCase {
   func testOpenNotification_CreatorActivity() {
     let categories: [Activity.Category] = [.backingAmount, .backingCanceled, .backingDropped, .backingReward]
 
-    let projectId = (backingForCreatorPushData["activity"] as? [String:AnyObject])
+    let projectId = (backingForCreatorPushData["activity"] as? [String: AnyObject])
       .flatMap { $0["project_id"] as? Int }
     let param = Param.id(projectId ?? -1)
 
@@ -828,7 +925,7 @@ final class AppDelegateViewModelTests: TestCase {
 
   func testOpenNotification_PostLike() {
 
-    let pushData: [String:Any] = [
+    let pushData: [String: Any] = [
       "aps": [
         "alert": "Blob liked your update: Important message..."
       ],
@@ -849,7 +946,7 @@ final class AppDelegateViewModelTests: TestCase {
     let liveStreamEvent = .template
       |> LiveStreamEvent.lens.id .~ 42
 
-    let pushData: [String:Any] = [
+    let pushData: [String: Any] = [
       "aps": [
         "alert": "A live stream as started!"
       ],
@@ -944,7 +1041,7 @@ final class AppDelegateViewModelTests: TestCase {
 
     self.scheduler.advance(by: .seconds(5))
 
-    self.setApplicationShortcutItems.assertValues([[.projectOfTheDay, .projectsWeLove, .search]])
+    self.setApplicationShortcutItems.assertValues([[.projectsWeLove, .search]])
 
     self.vm.inputs.applicationDidEnterBackground()
     self.vm.inputs.applicationWillEnterForeground()
@@ -952,8 +1049,8 @@ final class AppDelegateViewModelTests: TestCase {
 
     self.setApplicationShortcutItems.assertValues(
       [
-        [.projectOfTheDay, .projectsWeLove, .search],
-        [.projectOfTheDay, .projectsWeLove, .search]
+        [.projectsWeLove, .search],
+        [.projectsWeLove, .search]
       ]
     )
   }
@@ -972,7 +1069,7 @@ final class AppDelegateViewModelTests: TestCase {
       self.scheduler.advance(by: .seconds(5))
 
       self.setApplicationShortcutItems.assertValues([
-        [.projectOfTheDay, .recommendedForYou, .projectsWeLove, .search]
+        [.recommendedForYou, .projectsWeLove, .search]
       ])
     }
   }
@@ -991,7 +1088,7 @@ final class AppDelegateViewModelTests: TestCase {
       self.scheduler.advance(by: .seconds(5))
 
       self.setApplicationShortcutItems.assertValues([
-        [.creatorDashboard, .projectOfTheDay, .recommendedForYou, .projectsWeLove]
+        [.creatorDashboard, .recommendedForYou, .projectsWeLove, .search]
       ])
     }
   }
@@ -1019,43 +1116,6 @@ final class AppDelegateViewModelTests: TestCase {
 
     self.goToDashboard.assertValueCount(1)
     XCTAssertFalse(self.vm.outputs.applicationDidFinishLaunchingReturnValue)
-  }
-
-  func testPerformShortcutItem_ProjectOfTheDay() {
-    let potd = .template
-      |> Project.lens.dates.potdAt .~ MockDate().timeIntervalSince1970
-    let env = .template |> DiscoveryEnvelope.lens.projects .~ [potd]
-
-    withEnvironment(apiService: MockService(fetchDiscoveryResponse: env)) {
-      self.vm.inputs.applicationDidFinishLaunching(application: UIApplication.shared,
-                                                   launchOptions: [:])
-
-      self.presentViewController.assertValueCount(0)
-
-      self.vm.inputs.applicationPerformActionForShortcutItem(
-        ShortcutItem.projectOfTheDay.applicationShortcutItem
-      )
-
-      self.presentViewController.assertValueCount(1)
-    }
-  }
-
-  func testLaunchShortcutItem_ProjectOfTheDay() {
-    let potd = .template
-      |> Project.lens.dates.potdAt .~ MockDate().timeIntervalSince1970
-    let env = .template |> DiscoveryEnvelope.lens.projects .~ [potd]
-
-    withEnvironment(apiService: MockService(fetchDiscoveryResponse: env)) {
-      self.vm.inputs.applicationDidFinishLaunching(
-        application: UIApplication.shared,
-        launchOptions: [
-          UIApplicationLaunchOptionsKey.shortcutItem: ShortcutItem.projectOfTheDay.applicationShortcutItem
-        ]
-      )
-
-      self.presentViewController.assertValueCount(1)
-      XCTAssertFalse(self.vm.outputs.applicationDidFinishLaunchingReturnValue)
-    }
   }
 
   func testPerformShortcutItem_ProjectsWeLove() {
@@ -1157,7 +1217,7 @@ final class AppDelegateViewModelTests: TestCase {
     XCTAssertEqual(["App Open", "Opened App", "Performed Shortcut"], self.trackingClient.events)
     XCTAssertEqual([nil, nil, "projects_we_love"],
                    self.trackingClient.properties(forKey: "type", as: String.self))
-    XCTAssertEqual([nil, nil, "project_of_the_day,projects_we_love,search"],
+    XCTAssertEqual([nil, nil, "projects_we_love,search"],
                    self.trackingClient.properties(forKey: "context", as: String.self))
 
     withEnvironment(currentUser: .template) {
@@ -1181,8 +1241,8 @@ final class AppDelegateViewModelTests: TestCase {
         self.trackingClient.properties(forKey: "type", as: String.self)
       )
       XCTAssertEqual(
-        [nil, nil, "project_of_the_day,projects_we_love,search",
-          "project_of_the_day,recommended_for_you,projects_we_love,search"],
+        [nil, nil, "projects_we_love,search",
+          "recommended_for_you,projects_we_love,search"],
         self.trackingClient.properties(forKey: "context", as: String.self)
       )
     }
@@ -1203,7 +1263,7 @@ final class AppDelegateViewModelTests: TestCase {
     XCTAssertEqual(["App Open", "Opened App", "Performed Shortcut"], self.trackingClient.events)
     XCTAssertEqual([nil, nil, "projects_we_love"],
                    self.trackingClient.properties(forKey: "type", as: String.self))
-    XCTAssertEqual([nil, nil, "project_of_the_day,projects_we_love,search"],
+    XCTAssertEqual([nil, nil, "projects_we_love,search"],
                    self.trackingClient.properties(forKey: "context", as: String.self))
   }
 

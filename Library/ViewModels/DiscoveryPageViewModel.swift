@@ -132,7 +132,7 @@ public final class DiscoveryPageViewModel: DiscoveryPageViewModelType, Discovery
     (paginatedProjects, self.projectsAreLoading, pageCount) = paginate(
       requestFirstPageWith: requestFirstPageWith,
       requestNextPageWhen: isCloseToBottom,
-      clearOnNewRequest: false,
+      clearOnNewRequest: true,
       skipRepeats: false,
       valuesFromEnvelope: { $0.projects },
       cursorFromEnvelope: { $0.urls.api.moreProjects },
@@ -153,6 +153,7 @@ public final class DiscoveryPageViewModel: DiscoveryPageViewModelType, Discovery
       .takeWhen(paginatedProjects.filter { $0.isEmpty })
       .map(emptyState(forParams:))
       .skipNil()
+      .skipRepeats()
 
     self.hideEmptyState = Signal.merge(
       self.viewWillAppearProperty.signal.take(first: 1),
@@ -236,7 +237,6 @@ public final class DiscoveryPageViewModel: DiscoveryPageViewModelType, Discovery
       self.viewDidDisappearProperty.signal.mapConst(false)
     )
   }
-  // swiftlint:enable function_body_length
 
   fileprivate let sortProperty = MutableProperty<DiscoveryParams.Sort?>(nil)
   public func configureWith(sort: DiscoveryParams.Sort) {
@@ -312,9 +312,7 @@ private func saveSeen(activities: [Activity]) {
 
 private func refTag(fromParams params: DiscoveryParams, project: Project) -> RefTag {
 
-  if project.isPotdToday(today: AppEnvironment.current.dateType.init().date) {
-    return .discoveryPotd
-  } else if params.category != nil {
+  if params.category != nil {
     return .categoryWithSort(params.sort ?? .magic)
   } else if params.recommended == .some(true) {
     return .recsWithSort(params.sort ?? .magic)

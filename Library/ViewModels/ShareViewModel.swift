@@ -154,7 +154,6 @@ public final class ShareViewModel: ShareViewModelType, ShareViewModelInputs, Sha
         )
     }
   }
-  // swiftlint:enable function_body_length
 
   fileprivate let shareContextProperty = MutableProperty<(ShareContext, UIView?)?>(nil)
   public func configureWith(shareContext: ShareContext, shareContextView: UIView?) {
@@ -238,9 +237,10 @@ private func activityController(forShareContext shareContext: ShareContext) -> U
   guard let url = shareUrl(forShareContext: shareContext) else { return nil }
 
   let provider = activityItemProvider(forShareContext: shareContext)
+  let safariUrl = SafariURL(url: url)
 
-  let controller = UIActivityViewController(activityItems: [provider, url],
-                                            applicationActivities: [SafariActivity(url: url)])
+  let controller = UIActivityViewController(activityItems: [provider, safariUrl],
+                                            applicationActivities: [SafariActivity(url: safariUrl)])
 
   controller.excludedActivityTypes = excludedActivityTypes(forShareContext: shareContext)
 

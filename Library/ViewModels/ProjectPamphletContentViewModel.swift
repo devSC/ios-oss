@@ -35,7 +35,6 @@ public protocol ProjectPamphletContentViewModelType {
 public final class ProjectPamphletContentViewModel: ProjectPamphletContentViewModelType,
 ProjectPamphletContentViewModelInputs, ProjectPamphletContentViewModelOutputs {
 
-  //swiftlint:disable:next function_body_length
   public init() {
     let projectAndLiveStreamEvents = Signal.combineLatest(
       self.configDataProperty.signal.skipNil(),
@@ -105,7 +104,7 @@ ProjectPamphletContentViewModelInputs, ProjectPamphletContentViewModelOutputs {
     self.goToLiveStreamCountdown = project
       .takePairWhen(
         self.tappedLiveStreamProperty.signal.skipNil()
-          .filter({ !shouldGoToLiveStream(withLiveStreamEvent:$0) })
+          .filter({ !shouldGoToLiveStream(withLiveStreamEvent: $0) })
     )
   }
 

@@ -4,23 +4,24 @@ import Runes
 import Prelude
 
 public struct Project {
-  public let blurb: String
-  public let category: Category
-  public let country: Country
-  public let creator: User
-  public let memberData: MemberData
-  public let dates: Dates
-  public let id: Int
-  public let location: Location
-  public let name: String
-  public let personalization: Personalization
-  public let photo: Photo
-  public let rewards: [Reward]
-  public let slug: String
-  public let state: State
-  public let stats: Stats
-  public let urls: UrlsEnvelope
-  public let video: Video?
+
+  public private(set) var blurb: String
+  public private(set) var category: RootCategoriesEnvelope.Category
+  public private(set) var country: Country
+  public private(set) var creator: User
+  public private(set) var memberData: MemberData
+  public private(set) var dates: Dates
+  public private(set) var id: Int
+  public private(set) var location: Location
+  public private(set) var name: String
+  public private(set) var personalization: Personalization
+  public private(set) var photo: Photo
+  public private(set) var rewards: [Reward]
+  public private(set) var slug: String
+  public private(set) var state: State
+  public private(set) var stats: Stats
+  public private(set) var urls: UrlsEnvelope
+  public private(set) var video: Video?
 
   public struct UrlsEnvelope {
     public let web: WebEnvelope
@@ -36,7 +37,7 @@ public struct Project {
     public let high: String
   }
 
-  public enum State: String, Decodable {
+  public enum State: String, Argo.Decodable {
     case canceled
     case failed
     case live
@@ -50,6 +51,8 @@ public struct Project {
   public struct Stats {
     public let backersCount: Int
     public let commentsCount: Int?
+    public let currentCurrency: String?
+    public let currentCurrencyRate: Float?
     public let goal: Int
     public let pledged: Int
     public let staticUsdRate: Float
@@ -75,6 +78,16 @@ public struct Project {
     public var goalUsd: Int {
       return Int(floor(Float(self.goal) * self.staticUsdRate))
     }
+
+    /// Pledged amount converted to current currency.
+    public var pledgedCurrentCurrency: Int? {
+      return self.currentCurrencyRate.map { Int(floor(Float(self.pledged) * $0)) }
+    }
+
+    /// Goal amount converted to current currency.
+    public var goalCurrentCurrency: Int? {
+      return self.currentCurrencyRate.map { Int(floor(Float(self.goal) * $0)) }
+    }
   }
 
   public struct MemberData {
@@ -98,7 +111,6 @@ public struct Project {
     public let deadline: TimeInterval
     public let featuredAt: TimeInterval?
     public let launchedAt: TimeInterval
-    public let potdAt: TimeInterval?
     public let stateChangedAt: TimeInterval
   }
 
@@ -126,11 +138,6 @@ public struct Project {
     return isDateToday(date: featuredAt, today: today, calendar: calendar)
   }
 
-  public func isPotdToday(today: Date = Date(), calendar: Calendar = .current) -> Bool {
-    guard let potdAt = self.dates.potdAt else { return false }
-    return isDateToday(date: potdAt, today: today, calendar: calendar)
-  }
-
   private func isDateToday(date: TimeInterval, today: Date, calendar: Calendar) -> Bool {
     let startOfToday = calendar.startOfDay(for: today)
     return abs(startOfToday.timeIntervalSince1970 - date) < 60.0 * 60.0 * 24.0
@@ -148,12 +155,12 @@ extension Project: CustomDebugStringConvertible {
   }
 }
 
-extension Project: Decodable {
+extension Project: Argo.Decodable {
   static public func decode(_ json: JSON) -> Decoded<Project> {
     let create = curry(Project.init)
     let tmp1 = create
       <^> json <| "blurb"
-      <*> json <| "category"
+      <*> ((json <| "category" >>- decodeToGraphCategory) as Decoded<RootCategoriesEnvelope.Category>)
       <*> Project.Country.decode(json)
       <*> json <| "creator"
     let tmp2 = tmp1
@@ -175,14 +182,14 @@ extension Project: Decodable {
   }
 }
 
-extension Project.UrlsEnvelope: Decodable {
+extension Project.UrlsEnvelope: Argo.Decodable {
   static public func decode(_ json: JSON) -> Decoded<Project.UrlsEnvelope> {
     return curry(Project.UrlsEnvelope.init)
       <^> json <| "web"
   }
 }
 
-extension Project.UrlsEnvelope.WebEnvelope: Decodable {
+extension Project.UrlsEnvelope.WebEnvelope: Argo.Decodable {
   public static func decode(_ json: JSON) -> Decoded<Project.UrlsEnvelope.WebEnvelope> {
     return curry(Project.UrlsEnvelope.WebEnvelope.init)
       <^> json <| "project"
@@ -190,12 +197,15 @@ extension Project.UrlsEnvelope.WebEnvelope: Decodable {
   }
 }
 
-extension Project.Stats: Decodable {
+extension Project.Stats: Argo.Decodable {
   public static func decode(_ json: JSON) -> Decoded<Project.Stats> {
     let create = curry(Project.Stats.init)
-    return create
+    let tmp1 = create
       <^> json <| "backers_count"
       <*> json <|? "comments_count"
+      <*> json <|? "current_currency"
+      <*> json <|? "fx_rate"
+    return tmp1
       <*> json <| "goal"
       <*> json <| "pledged"
       <*> (json <| "static_usd_rate" <|> .success(1.0))
@@ -203,7 +213,7 @@ extension Project.Stats: Decodable {
   }
 }
 
-extension Project.MemberData: Decodable {
+extension Project.MemberData: Argo.Decodable {
   public static func decode(_ json: JSON) -> Decoded<Project.MemberData> {
     let create = curry(Project.MemberData.init)
     return create
@@ -214,18 +224,17 @@ extension Project.MemberData: Decodable {
   }
 }
 
-extension Project.Dates: Decodable {
+extension Project.Dates: Argo.Decodable {
   public static func decode(_ json: JSON) -> Decoded<Project.Dates> {
     return curry(Project.Dates.init)
       <^> json <| "deadline"
       <*> json <|? "featured_at"
       <*> json <| "launched_at"
-      <*> json <|? "potd_at"
       <*> json <| "state_changed_at"
   }
 }
 
-extension Project.Personalization: Decodable {
+extension Project.Personalization: Argo.Decodable {
   public static func decode(_ json: JSON) -> Decoded<Project.Personalization> {
     return curry(Project.Personalization.init)
       <^> json <|? "backing"
@@ -235,7 +244,7 @@ extension Project.Personalization: Decodable {
   }
 }
 
-extension Project.Photo: Decodable {
+extension Project.Photo: Argo.Decodable {
   static public func decode(_ json: JSON) -> Decoded<Project.Photo> {
     let create = curry(Project.Photo.init)
 
@@ -252,7 +261,7 @@ extension Project.Photo: Decodable {
   }
 }
 
-extension Project.MemberData.Permission: Decodable {
+extension Project.MemberData.Permission: Argo.Decodable {
   public static func decode(_ json: JSON) -> Decoded<Project.MemberData.Permission> {
     if case .string(let permission) = json {
       return self.init(rawValue: permission).map(pure) ?? .success(.unknown)
@@ -268,4 +277,39 @@ private func removeUnknowns(_ xs: [Project.MemberData.Permission]) -> [Project.M
 private func toInt(string: String) -> Decoded<Int> {
   return Int(string).map(Decoded.success)
     ?? Decoded.failure(DecodeError.custom("Couldn't decoded \"\(string)\" into Int."))
+}
+
+/*
+ This is a helper function that extracts the value from the Argo.JSON object type to create a graph Category
+ object (that conforms to Swift.Decodable). It's an work around that fixes the problem of incompatibility
+ between Swift.Decodable and Argo.Decodable protocols and will be deleted in the future when we update our
+ code to use exclusively Swift's native Decodable.
+ */
+private func decodeToGraphCategory(_ json: JSON?) -> Decoded<RootCategoriesEnvelope.Category> {
+
+  guard let jsonObj = json else {
+    return .success(RootCategoriesEnvelope.Category(id: "-1", name: "Unknown Category"))
+  }
+
+  switch jsonObj {
+  case .object(let dic):
+    let category = RootCategoriesEnvelope.Category(id: categoryInfo(dic).0,
+                                                   name: categoryInfo(dic).1)
+    return .success(category)
+  default:
+    return .failure(DecodeError.custom("JSON should be object type"))
+  }
+}
+
+private func categoryInfo(_ json: [String: JSON]) -> (String, String) {
+  guard let name = json["name"], let id = json["id"] else {
+    return("", "")
+  }
+
+  switch (id, name) {
+  case (.number(let id), .string(let name)):
+    return ("\(id)", name)
+  default:
+    return("", "")
+  }
 }

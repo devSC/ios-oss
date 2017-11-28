@@ -136,7 +136,8 @@ final class AppEnvironmentTests: XCTestCase {
         apiBaseUrl: URL(string: "http://api.ksr.com")!,
         webBaseUrl: URL(string: "http://ksr.com")!,
         apiClientAuth: ClientAuth(clientId: "cafebeef"),
-        basicHTTPAuth: nil
+        basicHTTPAuth: nil,
+        graphQLEndpointUrl: URL(string: "http://ksr.dev/graph")!
       ),
       oauthToken: OauthToken(token: "deadbeef")
     )
@@ -155,9 +156,10 @@ final class AppEnvironmentTests: XCTestCase {
     XCTAssertEqual("cafebeef", result["apiService.serverConfig.apiClientAuth.clientId"] as? String)
     XCTAssertEqual("http://ksr.com", result["apiService.serverConfig.webBaseUrl"] as? String)
     XCTAssertEqual("en", result["apiService.language"] as? String)
-    XCTAssertEqual(User.template.id, (result["currentUser"] as? [String:AnyObject])?["id"] as? Int)
+    XCTAssertEqual(User.template.id, (result["currentUser"] as? [String: AnyObject])?["id"] as? Int)
 
-    XCTAssertEqual(nil, ubiquitousStore.stringForKey(AppEnvironment.oauthTokenStorageKey), "No token stored.")
+    XCTAssertEqual(nil, ubiquitousStore.string(forKey: AppEnvironment.oauthTokenStorageKey),
+                   "No token stored.")
   }
 
   func testPushPopSave() {
@@ -168,7 +170,7 @@ final class AppEnvironmentTests: XCTestCase {
 
     var currentUserId = AppEnvironment.current.userDefaults
       .dictionary(forKey: AppEnvironment.environmentStorageKey)
-      .flatMap { $0["currentUser"] as? [String:AnyObject] }
+      .flatMap { $0["currentUser"] as? [String: AnyObject] }
       .flatMap { $0["id"] as? Int }
     XCTAssertEqual(User.template.id, currentUserId, "Current user is saved.")
 
@@ -176,7 +178,7 @@ final class AppEnvironmentTests: XCTestCase {
 
     currentUserId = AppEnvironment.current.userDefaults
       .dictionary(forKey: AppEnvironment.environmentStorageKey)
-      .flatMap { $0["currentUser"] as? [String:AnyObject] }
+      .flatMap { $0["currentUser"] as? [String: AnyObject] }
       .flatMap { $0["id"] as? Int }
     XCTAssertEqual(nil, currentUserId, "Current user is cleared.")
 

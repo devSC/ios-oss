@@ -11,8 +11,6 @@ public protocol RewardCellViewModelInputs {
 
 public protocol RewardCellViewModelOutputs {
   var allGoneHidden: Signal<Bool, NoError> { get }
-  var cardViewBackgroundColor: Signal<UIColor, NoError> { get }
-  var cardViewDropShadowHidden: Signal<Bool, NoError> { get }
   var conversionLabelHidden: Signal<Bool, NoError> { get }
   var conversionLabelText: Signal<String, NoError> { get }
   var descriptionLabelHidden: Signal<Bool, NoError> { get }
@@ -28,6 +26,8 @@ public protocol RewardCellViewModelOutputs {
   var notifyDelegateRewardCellWantsExpansion: Signal<(), NoError> { get }
   var pledgeButtonHidden: Signal<Bool, NoError> { get }
   var pledgeButtonTitleText: Signal<String, NoError> { get }
+  var shippingLocationsStackViewHidden: Signal<Bool, NoError> { get }
+  var shippingLocationsSummaryLabelText: Signal<String, NoError> { get }
   var titleLabelHidden: Signal<Bool, NoError> { get }
   var titleLabelText: Signal<String, NoError> { get }
   var titleLabelTextColor: Signal<UIColor, NoError> { get }
@@ -45,7 +45,7 @@ public protocol RewardCellViewModelType {
 public final class RewardCellViewModel: RewardCellViewModelType, RewardCellViewModelInputs,
 RewardCellViewModelOutputs {
 
-    public init() {
+  public init() {
     let projectAndRewardOrBacking = self.projectAndRewardOrBackingProperty.signal.skipNil()
     let project = projectAndRewardOrBacking.map(first)
     let reward = projectAndRewardOrBacking
@@ -57,21 +57,20 @@ RewardCellViewModelOutputs {
     }
     let projectAndReward = Signal.zip(project, reward)
 
-    self.conversionLabelHidden = project.map {
-      !needsConversion(projectCountry: $0.country, userCountry: AppEnvironment.current.config?.countryCode)
-    }
-
+    self.conversionLabelHidden = project.map(needsConversion(project:) >>> negate)
     self.conversionLabelText = projectAndRewardOrBacking
-      .filter { p, _ in
-        needsConversion(projectCountry: p.country, userCountry: AppEnvironment.current.config?.countryCode)
-      }
+      .filter(first >>> needsConversion(project:))
       .map { project, rewardOrBacking in
+        let (country, rate) = zip(
+          project.stats.currentCurrency.flatMap(Project.Country.init(currencyCode:)),
+          project.stats.currentCurrencyRate
+        ) ?? (.us, project.stats.staticUsdRate)
         switch rewardOrBacking {
         case let .left(reward):
           let min = minPledgeAmount(forProject: project, reward: reward)
-          return Format.currency(max(1, Int(Float(min) * project.stats.staticUsdRate)), country: .US)
+          return Format.currency(max(1, Int(Float(min) * rate)), country: country)
         case let .right(backing):
-          return Format.currency(Int(ceil(Float(backing.amount) * project.stats.staticUsdRate)), country: .US)
+          return Format.currency(Int(ceil(Float(backing.amount) * rate)), country: country)
         }
       }
       .map(Strings.About_reward_amount(reward_amount:))
@@ -106,8 +105,8 @@ RewardCellViewModelOutputs {
     self.titleLabelTextColor = projectAndReward
       .map { project, reward in
         reward.remaining != 0 || userIsBacking(reward: reward, inProject: project) || project.state != .live
-          ? .ksr_text_navy_700
-          : .ksr_text_navy_500
+          ? .ksr_text_dark_grey_900
+          : .ksr_text_dark_grey_500
     }
 
     let youreABacker = projectAndReward
@@ -130,7 +129,7 @@ RewardCellViewModelOutputs {
     self.estimatedDeliveryDateLabelText = reward
       .map { reward in
         reward.estimatedDeliveryOn.map {
-          Format.date(secondsInUTC: $0, dateFormat: "MMMM yyyy", timeZone: UTCTimeZone)
+          Format.date(secondsInUTC: $0, template: "MMMMyyyy", timeZone: UTCTimeZone)
       }
     }
     .skipNil()
@@ -167,11 +166,16 @@ RewardCellViewModelOutputs {
     let allGoneAndNotABacker = Signal.zip(reward, youreABacker)
       .map { reward, youreABacker in reward.remaining == 0 && !youreABacker }
 
-    self.footerStackViewHidden = projectAndReward
+    let isNoReward = reward
+      .map { $0.isNoReward }
+
+    self.footerStackViewHidden = Signal.merge(
+      projectAndReward
       .map { project, reward in
         reward.estimatedDeliveryOn == nil || shouldCollapse(reward: reward, forProject: project)
-      }
-      .mergeWith(self.tappedProperty.signal.mapConst(false))
+        },
+        isNoReward.takeWhen(self.tappedProperty.signal)
+      )
 
     self.descriptionLabelHidden = Signal.merge(
       rewardIsCollapsed,
@@ -202,20 +206,13 @@ RewardCellViewModelOutputs {
         : Strings.Select_this_reward()
     }
 
-    let tappable = Signal.zip(project, reward, youreABacker)
-      .map { project, reward, youreABacker in
-        (project.state == .live && reward.remaining != 0) || youreABacker
+    self.shippingLocationsStackViewHidden = reward.map {
+      $0.shipping.summary == nil
     }
 
-    self.cardViewDropShadowHidden = Signal.combineLatest(
-      tappable.map(negate),
-      self.boundStylesProperty.signal
-      )
-      .map(first)
-
-    self.cardViewBackgroundColor = Signal.combineLatest(allGoneAndNotABacker, self.boundStylesProperty.signal)
-      .map(first)
-      .map { $0 ? .ksr_grey_100 : .white }
+    self.shippingLocationsSummaryLabelText = reward.map {
+      $0.shipping.summary ?? ""
+    }
 
     self.notifyDelegateRewardCellWantsExpansion = allGoneAndNotABacker
       .takeWhen(self.tappedProperty.signal)
@@ -254,8 +251,6 @@ RewardCellViewModelOutputs {
   }
 
   public let allGoneHidden: Signal<Bool, NoError>
-  public let cardViewBackgroundColor: Signal<UIColor, NoError>
-  public let cardViewDropShadowHidden: Signal<Bool, NoError>
   public let conversionLabelHidden: Signal<Bool, NoError>
   public let conversionLabelText: Signal<String, NoError>
   public let descriptionLabelHidden: Signal<Bool, NoError>
@@ -271,6 +266,8 @@ RewardCellViewModelOutputs {
   public let notifyDelegateRewardCellWantsExpansion: Signal<(), NoError>
   public let pledgeButtonHidden: Signal<Bool, NoError>
   public let pledgeButtonTitleText: Signal<String, NoError>
+  public let shippingLocationsStackViewHidden: Signal<Bool, NoError>
+  public let shippingLocationsSummaryLabelText: Signal<String, NoError>
   public let titleLabelHidden: Signal<Bool, NoError>
   public let titleLabelText: Signal<String, NoError>
   public let titleLabelTextColor: Signal<UIColor, NoError>
@@ -285,27 +282,40 @@ RewardCellViewModelOutputs {
 
 private func minimumRewardAmountTextColor(project: Project, reward: Reward) -> UIColor {
   if project.state != .successful && project.state != .live && reward.remaining == 0 {
-    return .ksr_text_navy_700
+    return .ksr_text_dark_grey_500
   } else if (project.state == .live && reward.remaining == 0 &&
     userIsBacking(reward: reward, inProject: project)) {
-    return .ksr_text_green_700
+    return .ksr_green_700
   } else if (project.state != .live && reward.remaining == 0 &&
     userIsBacking(reward: reward, inProject: project)) {
-    return .ksr_text_navy_700
+    return .ksr_text_dark_grey_500
   } else if (project.state == .live && reward.remaining == 0) ||
     (project.state != .live && reward.remaining == 0) {
-    return .ksr_text_navy_500
+    return .ksr_text_dark_grey_400
   } else if project.state == .live {
-    return .ksr_text_green_700
+    return .ksr_green_700
   } else if project.state != .live {
-    return .ksr_text_navy_700
+    return .ksr_text_dark_grey_900
   } else {
-    return .ksr_text_navy_700
+    return .ksr_text_dark_grey_900
   }
 }
 
+private func needsConversion(project: Project) -> Bool {
+  guard let currentCurrency = project.stats.currentCurrency else {
+    return needsConversion(projectCountry: project.country,
+                           userCountry: AppEnvironment.current.config?.countryCode)
+  }
+  return currentCurrency == AppEnvironment.current.apiService.currency
+    && needsConversion(projectCountry: project.country, currentCurrency: currentCurrency)
+}
+
 private func needsConversion(projectCountry: Project.Country, userCountry: String?) -> Bool {
-  return userCountry == "US" && projectCountry != .US
+  return userCountry == "US" && projectCountry != .us
+}
+
+private func needsConversion(projectCountry: Project.Country, currentCurrency: String) -> Bool {
+  return projectCountry.currencyCode != currentCurrency
 }
 
 private func backingReward(fromProject project: Project) -> Reward? {

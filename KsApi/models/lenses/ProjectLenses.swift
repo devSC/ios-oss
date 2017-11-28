@@ -11,7 +11,7 @@ extension Project {
         video: $1.video) }
     )
 
-    public static let category = Lens<Project, Category>(
+    public static let category = Lens<Project, RootCategoriesEnvelope.Category>(
       view: { $0.category },
       set: { Project(blurb: $1.blurb, category: $0, country: $1.country,
         creator: $1.creator, memberData: $1.memberData, dates: $1.dates, id: $1.id,
@@ -187,17 +187,17 @@ extension Lens where Whole == Project, Part == User {
   }
 }
 
-extension Lens where Whole == Project, Part == Category {
-  public var id: Lens<Project, Int> {
-    return Project.lens.category..Category.lens.id
+extension Lens where Whole == Project, Part == RootCategoriesEnvelope.Category {
+  public var id: Lens<Project, String> {
+    return Project.lens.category..RootCategoriesEnvelope.Category.lens.id
   }
 
   public var name: Lens<Project, String> {
-    return Project.lens.category..Category.lens.name
+    return Project.lens.category..RootCategoriesEnvelope.Category.lens.name
   }
 
-  public var parent: Lens<Project, Category?> {
-    return Project.lens.category..Category.lens.parent
+  public var parent: Lens<Project, ParentCategory?> {
+    return Project.lens.category..RootCategoriesEnvelope.Category.lens.parent
   }
 }
 
@@ -218,6 +218,14 @@ extension Lens where Whole == Project, Part == Project.Stats {
 
   public var commentsCount: Lens<Project, Int?> {
     return Project.lens.stats..Project.Stats.lens.commentsCount
+  }
+
+  public var currentCurrency: Lens<Project, String?> {
+    return Project.lens.stats..Project.Stats.lens.currentCurrency
+  }
+
+  public var currentCurrencyRate: Lens<Project, Float?> {
+    return Project.lens.stats..Project.Stats.lens.currentCurrencyRate
   }
 
   public var goal: Lens<Project, Int> {
@@ -266,10 +274,6 @@ extension Lens where Whole == Project, Part == Project.Dates {
 
   public var launchedAt: Lens<Project, TimeInterval> {
     return Project.lens.dates..Project.Dates.lens.launchedAt
-  }
-
-  public var potdAt: Lens<Project, TimeInterval?> {
-    return Project.lens.dates..Project.Dates.lens.potdAt
   }
 
   public var stateChangedAt: Lens<Project, TimeInterval> {

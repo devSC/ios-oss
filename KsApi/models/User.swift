@@ -22,8 +22,10 @@ public struct User {
   }
 
   public struct NewsletterSubscriptions {
+    public let arts: Bool?
     public let games: Bool?
     public let happening: Bool?
+    public let invent: Bool?
     public let promo: Bool?
     public let weekly: Bool?
   }
@@ -40,7 +42,9 @@ public struct User {
     public let mobilePostLikes: Bool?
     public let mobileUpdates: Bool?
     public let postLikes: Bool?
+    public let creatorTips: Bool?
     public let updates: Bool?
+    public let creatorDigest: Bool?
   }
 
   public struct Stats {
@@ -68,7 +72,7 @@ extension User: CustomDebugStringConvertible {
   }
 }
 
-extension User: Decodable {
+extension User: Argo.Decodable {
   public static func decode(_ json: JSON) -> Decoded<User> {
     let create = curry(User.init)
     let tmp1 = pure(create)
@@ -90,8 +94,8 @@ extension User: Decodable {
 }
 
 extension User: EncodableType {
-  public func encode() -> [String:Any] {
-    var result: [String:Any] = [:]
+  public func encode() -> [String: Any] {
+    var result: [String: Any] = [:]
     result["avatar"] = self.avatar.encode()
     result["facebook_connected"] = self.facebookConnected ?? false
     result["id"] = self.id
@@ -107,7 +111,7 @@ extension User: EncodableType {
   }
 }
 
-extension User.Avatar: Decodable {
+extension User.Avatar: Argo.Decodable {
   public static func decode(_ json: JSON) -> Decoded<User.Avatar> {
     return curry(User.Avatar.init)
       <^> json <|? "large"
@@ -117,8 +121,8 @@ extension User.Avatar: Decodable {
 }
 
 extension User.Avatar: EncodableType {
-  public func encode() -> [String:Any] {
-    var ret: [String:Any] = [
+  public func encode() -> [String: Any] {
+    var ret: [String: Any] = [
       "medium": self.medium,
       "small": self.small
     ]
@@ -129,21 +133,25 @@ extension User.Avatar: EncodableType {
   }
 }
 
-extension User.NewsletterSubscriptions: Decodable {
+extension User.NewsletterSubscriptions: Argo.Decodable {
   public static func decode(_ json: JSON) -> Decoded<User.NewsletterSubscriptions> {
     return curry(User.NewsletterSubscriptions.init)
-      <^> json <|? "games_newsletter"
+      <^> json <|? "arts_culture_newsletter"
+      <*> json <|? "games_newsletter"
       <*> json <|? "happening_newsletter"
+      <*> json <|? "invent_newsletter"
       <*> json <|? "promo_newsletter"
       <*> json <|? "weekly_newsletter"
   }
 }
 
 extension User.NewsletterSubscriptions: EncodableType {
-  public func encode() -> [String:Any] {
-    var result: [String:Any] = [:]
+  public func encode() -> [String: Any] {
+    var result: [String: Any] = [:]
+    result["arts_culture_newsletter"] = self.arts
     result["games_newsletter"] = self.games
     result["happening_newsletter"] = self.happening
+    result["invent_newsletter"] = self.invent
     result["promo_newsletter"] = self.promo
     result["weekly_newsletter"] = self.weekly
     return result
@@ -152,13 +160,15 @@ extension User.NewsletterSubscriptions: EncodableType {
 
 extension User.NewsletterSubscriptions: Equatable {}
 public func == (lhs: User.NewsletterSubscriptions, rhs: User.NewsletterSubscriptions) -> Bool {
-  return lhs.games == rhs.games &&
+  return lhs.arts == rhs.arts &&
+    lhs.games == rhs.games &&
     lhs.happening == rhs.happening &&
+    lhs.invent == rhs.invent &&
     lhs.promo == rhs.promo &&
     lhs.weekly == rhs.weekly
 }
 
-extension User.Notifications: Decodable {
+extension User.Notifications: Argo.Decodable {
   public static func decode(_ json: JSON) -> Decoded<User.Notifications> {
     let create = curry(User.Notifications.init)
     let tmp1 = create
@@ -175,19 +185,23 @@ extension User.Notifications: Decodable {
       <*> json <|? "notify_mobile_of_post_likes"
       <*> json <|? "notify_mobile_of_updates"
       <*> json <|? "notify_of_post_likes"
+      <*> json <|? "notify_of_creator_edu"
       <*> json <|? "notify_of_updates"
+      <*> json <|? "notify_of_creator_digest"
   }
 }
 
 extension User.Notifications: EncodableType {
-  public func encode() -> [String:Any] {
-    var result: [String:Any] = [:]
+  public func encode() -> [String: Any] {
+    var result: [String: Any] = [:]
     result["notify_of_backings"] = self.backings
     result["notify_of_comments"] = self.comments
     result["notify_of_follower"] = self.follower
     result["notify_of_friend_activity"] = self.friendActivity
     result["notify_of_post_likes"] = self.postLikes
+    result["notify_of_creator_edu"] = self.creatorTips
     result["notify_of_updates"] = self.updates
+    result["notify_of_creator_digest"] = self.creatorDigest
     result["notify_mobile_of_backings"] = self.mobileBackings
     result["notify_mobile_of_comments"] = self.mobileComments
     result["notify_mobile_of_follower"] = self.mobileFollower
@@ -211,10 +225,12 @@ public func == (lhs: User.Notifications, rhs: User.Notifications) -> Bool {
     lhs.mobilePostLikes == rhs.mobilePostLikes &&
     lhs.mobileUpdates == rhs.mobileUpdates &&
     lhs.postLikes == rhs.postLikes &&
-    lhs.updates == rhs.updates
+    lhs.creatorTips == rhs.creatorTips &&
+    lhs.updates == rhs.updates &&
+    lhs.creatorDigest == rhs.creatorDigest
 }
 
-extension User.Stats: Decodable {
+extension User.Stats: Argo.Decodable {
   public static func decode(_ json: JSON) -> Decoded<User.Stats> {
     let create = curry(User.Stats.init)
     return create
@@ -228,8 +244,8 @@ extension User.Stats: Decodable {
 }
 
 extension User.Stats: EncodableType {
-  public func encode() -> [String:Any] {
-    var result: [String:Any] = [:]
+  public func encode() -> [String: Any] {
+    var result: [String: Any] = [:]
     result["backed_projects_count"] =  self.backedProjectsCount
     result["created_projects_count"] = self.createdProjectsCount
     result["member_projects_count"] = self.memberProjectsCount

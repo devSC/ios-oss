@@ -73,7 +73,6 @@ public final class DiscoveryViewModel: DiscoveryViewModelType, DiscoveryViewMode
 DiscoveryViewModelOutputs {
   fileprivate static let defaultParams = .defaults |> DiscoveryParams.lens.includePOTD .~ true
 
-  // swiftlint:disable:next function_body_length
   public init() {
     let sorts: [DiscoveryParams.Sort] = [.magic, .popular, .newest, .endingSoon, .mostFunded]
 
@@ -119,7 +118,7 @@ DiscoveryViewModelOutputs {
     }
 
     self.updateSortPagerStyle = self.filterWithParamsProperty.signal.skipNil()
-      .map { $0.category?.root?.id }
+      .map { $0.category?.intID }
       .skipRepeats(==)
 
     self.sortsAreEnabled = self.setSortsEnabledProperty.signal.skipNil()
@@ -171,6 +170,7 @@ DiscoveryViewModelOutputs {
   public func viewDidLoad() {
     self.viewDidLoadProperty.value = ()
   }
+
   fileprivate let viewWillAppearProperty = MutableProperty<Bool?>(nil)
   public func viewWillAppear(animated: Bool) {
     self.viewWillAppearProperty.value = animated

@@ -12,24 +12,27 @@ private extension Bundle {
 
 /**
  A `ServerType` that requests data from an API webservice.
-*/
+ */
 public struct Service: ServiceType {
   public let appId: String
   public let serverConfig: ServerConfigType
   public let oauthToken: OauthTokenAuthType?
   public let language: String
+  public let currency: String
   public let buildVersion: String
 
   public init(appId: String = Bundle.main.bundleIdentifier ?? "com.kickstarter.kickstarter",
               serverConfig: ServerConfigType = ServerConfig.production,
               oauthToken: OauthTokenAuthType? = nil,
               language: String = "en",
+              currency: String = "USD",
               buildVersion: String = Bundle.main._buildVersion) {
 
     self.appId = appId
     self.serverConfig = serverConfig
     self.oauthToken = oauthToken
     self.language = language
+    self.currency = currency
     self.buildVersion = buildVersion
   }
 
@@ -113,7 +116,7 @@ public struct Service: ServiceType {
       .launch,
       .success,
       .update,
-    ]
+      ]
     return request(.activities(categories: categories, count: count))
   }
 
@@ -125,14 +128,6 @@ public struct Service: ServiceType {
   public func fetchBacking(forProject project: Project, forUser user: User)
     -> SignalProducer<Backing, ErrorEnvelope> {
       return request(.backing(projectId: project.id, backerId: user.id))
-  }
-
-  public func fetchCategories() -> SignalProducer<CategoriesEnvelope, ErrorEnvelope> {
-    return request(.categories)
-  }
-
-  public func fetchCategory(param: Param) -> SignalProducer<Category, ErrorEnvelope> {
-    return request(.category(param))
   }
 
   public func fetchCheckout(checkoutUrl url: String) -> SignalProducer<CheckoutEnvelope, ErrorEnvelope> {
@@ -158,13 +153,13 @@ public struct Service: ServiceType {
   public func fetchDiscovery(paginationUrl: String)
     -> SignalProducer<DiscoveryEnvelope, ErrorEnvelope> {
 
-    return requestPagination(paginationUrl)
+      return requestPagination(paginationUrl)
   }
 
   public func fetchDiscovery(params: DiscoveryParams)
     -> SignalProducer<DiscoveryEnvelope, ErrorEnvelope> {
 
-    return request(.discover(params))
+      return request(.discover(params))
   }
 
   public func fetchFriends() -> SignalProducer<FindFriendsEnvelope, ErrorEnvelope> {
@@ -181,6 +176,16 @@ public struct Service: ServiceType {
     return request(.friendStats)
   }
 
+  public func fetchGraphCategories(query: NonEmptySet<Query>)
+    -> SignalProducer<RootCategoriesEnvelope, GraphError> {
+    return fetch(query: query)
+  }
+
+  public func fetchGraphCategory(query: NonEmptySet<Query>)
+    -> SignalProducer<RootCategoriesEnvelope.Category, GraphError> {
+      return fetch(query: query)
+  }
+
   public func fetchMessageThread(messageThreadId: Int)
     -> SignalProducer<MessageThreadEnvelope, ErrorEnvelope> {
 
@@ -188,8 +193,8 @@ public struct Service: ServiceType {
   }
 
   public func fetchMessageThread(backing: Backing)
-    -> SignalProducer<MessageThreadEnvelope, ErrorEnvelope> {
-    return request(.messagesForBacking(backing))
+    -> SignalProducer<MessageThreadEnvelope?, ErrorEnvelope> {
+      return request(.messagesForBacking(backing))
   }
 
   public func fetchMessageThreads(mailbox: Mailbox, project: Project?)
@@ -258,7 +263,7 @@ public struct Service: ServiceType {
 
   public func fetchUserProjectsBacked(paginationUrl url: String)
     -> SignalProducer<ProjectsEnvelope, ErrorEnvelope> {
-    return requestPagination(url)
+      return requestPagination(url)
   }
 
   public func fetchUserSelf() -> SignalProducer<User, ErrorEnvelope> {
@@ -328,13 +333,13 @@ public struct Service: ServiceType {
   public func login(email: String, password: String, code: String?) ->
     SignalProducer<AccessTokenEnvelope, ErrorEnvelope> {
 
-    return request(.login(email: email, password: password, code: code))
+      return request(.login(email: email, password: password, code: code))
   }
 
   public func login(facebookAccessToken: String, code: String?) ->
     SignalProducer<AccessTokenEnvelope, ErrorEnvelope> {
 
-    return request(.facebookLogin(facebookAccessToken: facebookAccessToken, code: code))
+      return request(.facebookLogin(facebookAccessToken: facebookAccessToken, code: code))
   }
 
   public func markAsRead(messageThread: MessageThread)
@@ -351,7 +356,7 @@ public struct Service: ServiceType {
 
   public func postComment(_ body: String, toUpdate update: Update) -> SignalProducer<Comment, ErrorEnvelope> {
 
-      return request(.postUpdateComment(update, body: body))
+    return request(.postUpdateComment(update, body: body))
   }
 
   public func publish(draft: UpdateDraft) -> SignalProducer<Update, ErrorEnvelope> {
@@ -394,7 +399,7 @@ public struct Service: ServiceType {
   public func signup(facebookAccessToken token: String, sendNewsletters: Bool) ->
     SignalProducer<AccessTokenEnvelope, ErrorEnvelope> {
 
-    return request(.facebookSignup(facebookAccessToken: token, sendNewsletters: sendNewsletters))
+      return request(.facebookSignup(facebookAccessToken: token, sendNewsletters: sendNewsletters))
   }
 
   public func star(_ project: Project) -> SignalProducer<StarEnvelope, ErrorEnvelope> {
@@ -453,14 +458,14 @@ public struct Service: ServiceType {
   public func updateProjectNotification(_ notification: ProjectNotification)
     -> SignalProducer<ProjectNotification, ErrorEnvelope> {
 
-    return request(.updateProjectNotification(notification: notification))
+      return request(.updateProjectNotification(notification: notification))
   }
 
   public func updateUserSelf(_ user: User) -> SignalProducer<User, ErrorEnvelope> {
     return request(.updateUserSelf(user))
   }
 
-  private func decodeModel<M: Decodable>(_ json: Any) ->
+  private func decodeModel<M: Argo.Decodable>(_ json: Any) ->
     SignalProducer<M, ErrorEnvelope> where M == M.DecodedType {
 
       return SignalProducer(value: json)
@@ -476,7 +481,7 @@ public struct Service: ServiceType {
       }
   }
 
-  private func decodeModels<M: Decodable>(_ json: Any) ->
+  private func decodeModels<M: Argo.Decodable>(_ json: Any) ->
     SignalProducer<[M], ErrorEnvelope> where M == M.DecodedType {
 
       return SignalProducer(value: json)
@@ -494,7 +499,40 @@ public struct Service: ServiceType {
 
   private static let session = URLSession(configuration: .default)
 
-  private func requestPagination<M: Decodable>(_ paginationUrl: String)
+  private func fetch<A: Swift.Decodable>(query: NonEmptySet<Query>) -> SignalProducer<A, GraphError> {
+
+    return SignalProducer<A, GraphError> { observer, disposable in
+
+      let request = self.preparedRequest(forURL: self.serverConfig.graphQLEndpointUrl,
+                                         queryString: Query.build(query))
+      let task = URLSession.shared.dataTask(with: request) {  data, response, error in
+        if let error = error {
+          observer.send(error: .requestError(error, response))
+          return
+        }
+
+        guard let data = data else {
+          observer.send(error: .emptyResponse(response))
+          return
+        }
+
+        do {
+          let decodedObject = try JSONDecoder().decode(GraphResponse<A>.self, from: data)
+          if let value = decodedObject.data {
+            observer.send(value: value)
+          }
+        } catch let error {
+          observer.send(error: .jsonDecodingError(responseString: String(data: data, encoding: .utf8),
+                                                  error: error))
+        }
+        observer.sendCompleted()
+      }
+      disposable.add(task.cancel)
+      task.resume()
+    }
+  }
+
+  private func requestPagination<M: Argo.Decodable>(_ paginationUrl: String)
     -> SignalProducer<M, ErrorEnvelope> where M == M.DecodedType {
 
       guard let paginationUrl = URL(string: paginationUrl) else {
@@ -505,7 +543,7 @@ public struct Service: ServiceType {
         .flatMap(decodeModel)
   }
 
-  private func request<M: Decodable>(_ route: Route)
+  private func request<M: Argo.Decodable>(_ route: Route)
     -> SignalProducer<M, ErrorEnvelope> where M == M.DecodedType {
 
       let properties = route.requestProperties
@@ -523,7 +561,7 @@ public struct Service: ServiceType {
         .flatMap(decodeModel)
   }
 
-  private func request<M: Decodable>(_ route: Route)
+  private func request<M: Argo.Decodable>(_ route: Route)
     -> SignalProducer<[M], ErrorEnvelope> where M == M.DecodedType {
 
       let properties = route.requestProperties
@@ -535,5 +573,30 @@ public struct Service: ServiceType {
         uploading: properties.file.map { ($1, $0.rawValue) }
         )
         .flatMap(decodeModels)
+  }
+
+  private func request<M: Argo.Decodable>(_ route: Route)
+    -> SignalProducer<M?, ErrorEnvelope> where M == M.DecodedType {
+
+      let properties = route.requestProperties
+
+      guard let URL = URL(string: properties.path, relativeTo: self.serverConfig.apiBaseUrl as URL) else {
+        fatalError(
+          "URL(string: \(properties.path), relativeToURL: \(self.serverConfig.apiBaseUrl)) == nil"
+        )
+      }
+
+      return Service.session.rac_JSONResponse(
+        preparedRequest(forURL: URL, method: properties.method, query: properties.query),
+        uploading: properties.file.map { ($1, $0.rawValue) }
+        )
+        .flatMap(decodeModel)
+  }
+
+  private func decodeModel<M: Argo.Decodable>(_ json: Any) ->
+    SignalProducer<M?, ErrorEnvelope> where M == M.DecodedType {
+
+      return SignalProducer(value: json)
+        .map { json in decode(json) as M? }
   }
 }

@@ -24,20 +24,23 @@ final class LocationTests: XCTestCase {
       "country": "US",
       "id": 1,
       "displayable_name": "Brooklyn, NY",
+      "localized_name": "Brooklyn, NY",
       "name": "Brooklyn"
     ])
 
     XCTAssertNil(location.error)
     XCTAssertEqual(location.value?.id, 1)
     XCTAssertEqual(location.value?.displayableName, "Brooklyn, NY")
+    XCTAssertEqual(location.value?.localizedName, "Brooklyn, NY")
     XCTAssertEqual(location.value?.name, "Brooklyn")
   }
 
   func testEncodeDecode() {
-    let location: [String:Any] = [
+    let location: [String: Any] = [
       "country": "US",
       "id": 44,
       "displayable_name": "New Amsterdam, NY",
+      "localized_name": "New Amsterdam, NY",
       "name": "New Amsterdam"
     ]
 

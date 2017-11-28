@@ -95,17 +95,45 @@ public final class RootTabBarViewController: UITabBarController {
   public func switchToMessageThread(_ messageThread: MessageThread) {
     self.switchToProfile()
 
-    guard let profileNav = self.selectedViewController as? UINavigationController,
+    guard
+      let profileNav = self.selectedViewController as? UINavigationController,
       let profileVC = profileNav.viewControllers.first
-      else { return }
+    else { return }
 
     let threadsVC = MessageThreadsViewController.configuredWith(project: nil)
     let messageThreadVC = MessagesViewController.configuredWith(messageThread: messageThread)
 
+    self.presentedViewController?.dismiss(animated: false, completion: nil)
+
     profileNav.setViewControllers([profileVC, threadsVC, messageThreadVC], animated: true)
   }
 
-  // swiftlint:disable:next cyclomatic_complexity
+  public func switchToCreatorMessageThread(projectId: Param, messageThread: MessageThread) {
+    self.switchToDashboard(project: nil)
+
+    guard
+      let dashboardNav = self.selectedViewController as? UINavigationController,
+      let dashboardVC = dashboardNav.viewControllers.first as? DashboardViewController
+    else { return }
+
+    self.presentedViewController?.dismiss(animated: false, completion: nil)
+
+     dashboardVC.navigateToProjectMessageThread(projectId: projectId, messageThread: messageThread)
+  }
+
+  public func switchToProjectActivities(projectId: Param) {
+    self.switchToDashboard(project: nil)
+
+    guard
+      let dashboardNav = self.selectedViewController as? UINavigationController,
+      let dashboardVC = dashboardNav.viewControllers.first as? DashboardViewController
+    else { return }
+
+    self.presentedViewController?.dismiss(animated: false, completion: nil)
+
+    dashboardVC.navigateToProjectActivities(projectId: projectId)
+  }
+
   // swiftlint:disable:next function_body_length
   fileprivate func setTabBarItemStyles(withData data: TabBarItemsData) {
     data.items.forEach { item in

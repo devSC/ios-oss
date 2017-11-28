@@ -15,7 +15,7 @@ final class ConfigTests: XCTestCase {
       "feature1": true,
       "feature2": false,
       ]
-    let json: [String:Any] = [
+    let json: [String: Any] = [
       "ab_experiments": abExperiments,
       "app_id": 123456789,
       "apple_pay_countries": ["US", "GB", "CA"],
@@ -52,7 +52,7 @@ final class ConfigTests: XCTestCase {
     XCTAssertEqual(["US", "GB", "CA"], config.applePayCountries)
     XCTAssertEqual(features, config.features)
     XCTAssertEqual("http://www.itunes.com", config.iTunesLink)
-    XCTAssertEqual([.ES, .FR], config.launchedCountries)
+    XCTAssertEqual([.es, .fr], config.launchedCountries)
     XCTAssertEqual("en", config.locale)
     XCTAssertEqual("pk", config.stripePublishableKey)
 

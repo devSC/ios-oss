@@ -12,7 +12,6 @@ public enum RefTag {
   case dashboard
   case dashboardActivity
   case discovery
-  case discoveryPotd
   case discoveryWithSort(DiscoveryParams.Sort)
   case liveStream
   case liveStreamCountdown
@@ -66,7 +65,6 @@ public enum RefTag {
     case "discovery_most_funded":     self = .discoveryWithSort(.mostFunded)
     case "discovery_newest":          self = .discoveryWithSort(.newest)
     case "discovery_popular":         self = .discoveryWithSort(.popular)
-    case "discovery_potd":            self = .discoveryPotd
     case "live_stream":               self = .liveStream
     case "live_stream_countdown":     self = .liveStreamCountdown
     case "live_stream_discovery":     self = .liveStreamDiscovery
@@ -108,7 +106,6 @@ public enum RefTag {
     }
   }
   // swiftlint:enable cyclomatic_complexity
-  // swiftlint:enable function_body_length
 
   /// A string representation of the ref tag that can be used in analytics tracking, cookies, etc...
   public var stringTag: String {
@@ -131,8 +128,6 @@ public enum RefTag {
       return "dashboard_activity"
     case .discovery:
       return "discovery"
-    case .discoveryPotd:
-      return "discovery_potd"
     case let .discoveryWithSort(sort):
       return "discovery" + sortRefTagSuffix(sort)
     case .liveStream:
@@ -189,7 +184,7 @@ public func == (lhs: RefTag, rhs: RefTag) -> Bool {
   switch (lhs, rhs) {
   case (.activity, .activity), (.category, .category), (.categoryFeatured, .categoryFeatured),
     (.activitySample, .activitySample), (.city, .city), (.dashboard, .dashboard),
-    (.dashboardActivity, .dashboardActivity), (.discovery, .discovery), (.discoveryPotd, .discoveryPotd),
+    (.dashboardActivity, .dashboardActivity), (.discovery, .discovery),
     (.liveStreamCountdown, .liveStreamCountdown), (.liveStreamDiscovery, .liveStreamDiscovery),
     (.liveStreamReplay, .liveStreamReplay), (.messageThread, .messageThread),
     (.profileBacked, .profileBacked), (.profileSaved, .profileSaved), (.projectPage, .projectPage),
@@ -243,7 +238,7 @@ private func sortRefTagSuffix(_ sort: DiscoveryParams.Sort) -> String {
   }
 }
 
-extension RefTag: Decodable {
+extension RefTag: Argo.Decodable {
   public static func decode(_ json: JSON) -> Decoded<RefTag> {
     switch json {
     case let .string(code):

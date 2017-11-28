@@ -71,7 +71,6 @@ public protocol LiveStreamCountdownViewModelOutputs {
 public final class LiveStreamCountdownViewModel: LiveStreamCountdownViewModelType,
 LiveStreamCountdownViewModelInputs, LiveStreamCountdownViewModelOutputs {
 
-  //swiftlint:disable:next function_body_length
   public init() {
     let configData = Signal.combineLatest(
       self.configData.signal.skipNil(),
@@ -216,9 +215,5 @@ private func flipLiveStreamEventToLive(liveStreamEvent: LiveStreamEvent) -> Live
 
 private func formattedDateString(date: Date) -> String {
 
-  let format = DateFormatter.dateFormat(fromTemplate: "dMMMhmzzz",
-                                        options: 0,
-                                        locale: AppEnvironment.current.locale) ?? "MMM d, h:mm a zzz"
-
-  return Format.date(secondsInUTC: date.timeIntervalSince1970, dateFormat: format)
+  return Format.date(secondsInUTC: date.timeIntervalSince1970, template: "dMMMhmzzz")
 }

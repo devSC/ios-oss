@@ -59,7 +59,9 @@ public final class VideoViewController: UIViewController {
     super.bindStyles()
 
     _ = self.playButton
-      |> UIButton.lens.accessibilityLabel %~ { _ in Strings.accessibility_projects_buttons_play_video() }
+      |> UIButton.lens.image(forState: .normal) .~ image(named: "play-arrow-icon")
+      <> UIButton.lens.backgroundColor(forState: .highlighted) .~ UIColor.white.withAlphaComponent(0.5)
+      <> UIButton.lens.accessibilityLabel %~ { _ in Strings.accessibility_projects_buttons_play_video() }
 
     _ = self.projectImageView
       |> UIImageView.lens.accessibilityElementsHidden .~ true
@@ -149,7 +151,6 @@ public final class VideoViewController: UIViewController {
         self?.playerController.player?.seek(to: kCMTimeZero)
     }
   }
-  // swiftlint:enable function_body_length
 
   func addCompletionObserver(atTime time: CMTime) {
     guard let player = self.playerController.player else { return }
@@ -176,7 +177,7 @@ public final class VideoViewController: UIViewController {
   }
 
   public override func observeValue(forKeyPath keyPath: String?, of object: Any?,
-                                    change: [NSKeyValueChangeKey : Any]?,
+                                    change: [NSKeyValueChangeKey: Any]?,
                                     context: UnsafeMutableRawPointer?) {
 
     guard let player = self.playerController.player else { return }

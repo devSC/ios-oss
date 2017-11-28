@@ -13,6 +13,7 @@ internal final class RewardPledgeViewControllerTests: TestCase {
     |> Project.lens.state .~ .live
   fileprivate let cosmicReward = Project.cosmicSurgery.rewards.last!
     |> Reward.lens.shipping.enabled .~ true
+    |> Reward.lens.shipping.summary .~ "Wherever"
     |> Reward.lens.estimatedDeliveryOn .~ 1506031200
 
   override func setUp() {
@@ -43,7 +44,7 @@ internal final class RewardPledgeViewControllerTests: TestCase {
     let reward = self.cosmicReward |> Reward.lens.rewardsItems .~ []
 
     combos(Language.allLanguages, [false, true]).forEach { language, applePayCapable in
-      withEnvironment(language: language) {
+      withEnvironment(language: language, locale: .init(identifier: language.rawValue)) {
 
         let vc = RewardPledgeViewController.configuredWith(
           project: project, reward: reward, applePayCapable: applePayCapable
@@ -169,10 +170,10 @@ internal final class RewardPledgeViewControllerTests: TestCase {
 
   func testPledge_NoReward() {
     let reward = Reward.noReward
-    let project = self.cosmicSurgery |> Project.lens.country .~ .US
+    let project = self.cosmicSurgery |> Project.lens.country .~ .us
 
     combos(Language.allLanguages, [false, true]).forEach { language, applePayCapable in
-      withEnvironment(language: language) {
+      withEnvironment(language: language, locale: .init(identifier: language.rawValue)) {
         let vc = RewardPledgeViewController.configuredWith(
           project: project, reward: reward, applePayCapable: applePayCapable
         )
@@ -198,7 +199,7 @@ internal final class RewardPledgeViewControllerTests: TestCase {
     )
 
     Language.allLanguages.forEach { language in
-      withEnvironment(language: language) {
+      withEnvironment(language: language, locale: .init(identifier: language.rawValue)) {
         let vc = RewardPledgeViewController.configuredWith(
           project: project, reward: reward, applePayCapable: false
         )
@@ -223,7 +224,7 @@ internal final class RewardPledgeViewControllerTests: TestCase {
     )
 
     Language.allLanguages.forEach { language in
-      withEnvironment(language: language) {
+      withEnvironment(language: language, locale: .init(identifier: language.rawValue)) {
         let vc = RewardPledgeViewController.configuredWith(
           project: project, reward: reward, applePayCapable: false
         )
@@ -273,7 +274,7 @@ internal final class RewardPledgeViewControllerTests: TestCase {
     )
 
     combos(Language.allLanguages, [true, false]).forEach { language, applePayCapable in
-      withEnvironment(language: language) {
+      withEnvironment(language: language, locale: .init(identifier: language.rawValue)) {
         let vc = RewardPledgeViewController.configuredWith(
           project: project, reward: newReward, applePayCapable: applePayCapable
         )
@@ -318,7 +319,7 @@ internal final class RewardPledgeViewControllerTests: TestCase {
 
   func testAmbigiousCurrencies() {
     let project = self.cosmicSurgery
-      |> Project.lens.stats.staticUsdRate .~ 1.2
+      |> Project.lens.stats.currentCurrencyRate .~ 1.2
     let reward = self.cosmicReward
       |> Reward.lens.rewardsItems .~ []
 

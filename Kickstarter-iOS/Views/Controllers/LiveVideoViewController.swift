@@ -41,7 +41,7 @@ public final class LiveVideoViewController: UIViewController {
   public override func viewDidLoad() {
     super.viewDidLoad()
 
-    self.view.backgroundColor = .black
+    self.view.backgroundColor = .ksr_dark_grey_900
     self.view.addSubview(self.videoGridView)
 
     NotificationCenter.default.addObserver(forName: .UIApplicationDidEnterBackground,
@@ -74,7 +74,6 @@ public final class LiveVideoViewController: UIViewController {
     self.videoGridView.frame = self.view.bounds
   }
 
-  //swiftlint:disable:next function_body_length
   public override func bindViewModel() {
     super.bindViewModel()
 
@@ -163,7 +162,7 @@ public final class LiveVideoViewController: UIViewController {
 
   public override func observeValue(forKeyPath keyPath: String?,
                                     of object: Any?,
-                                    change: [NSKeyValueChangeKey : Any]?,
+                                    change: [NSKeyValueChangeKey: Any]?,
                                     context: UnsafeMutableRawPointer?) {
     guard let status = self.playerController?.player?.currentItem?.status else { return }
 

@@ -159,7 +159,6 @@ internal final class UpdateDraftViewController: UIViewController {
     Keyboard.change.observeForUI()
       .observeValues { [weak self] in self?.animateBottomConstraint($0) }
   }
-  // swiftlint:enable function_body_length
 
   internal override func viewDidLoad() {
     super.viewDidLoad()
@@ -297,7 +296,7 @@ extension UpdateDraftViewController: UITextViewDelegate {
 
 extension UpdateDraftViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
   @objc internal func imagePickerController(_ picker: UIImagePickerController,
-                                            didFinishPickingMediaWithInfo info: [String:Any]) {
+                                            didFinishPickingMediaWithInfo info: [String: Any]) {
     guard
       let image = info[UIImagePickerControllerOriginalImage] as? UIImage,
       let imageData = UIImageJPEGRepresentation(image, 0.9),

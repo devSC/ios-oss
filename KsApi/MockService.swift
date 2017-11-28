@@ -9,6 +9,7 @@ internal struct MockService: ServiceType {
   internal let serverConfig: ServerConfigType
   internal let oauthToken: OauthTokenAuthType?
   internal let language: String
+  internal let currency: String
   internal let buildVersion: String
 
   fileprivate let changePaymentMethodResult: Result<ChangePaymentMethodEnvelope, ErrorEnvelope>?
@@ -23,7 +24,7 @@ internal struct MockService: ServiceType {
 
   fileprivate let fetchBackingResponse: Backing
 
-  fileprivate let fetchCategoriesResponse: CategoriesEnvelope?
+  fileprivate let fetchGraphCategoriesResponse: RootCategoriesEnvelope?
 
   fileprivate let fetchCheckoutResponse: CheckoutEnvelope?
   fileprivate let fetchCheckoutError: ErrorEnvelope?
@@ -52,7 +53,7 @@ internal struct MockService: ServiceType {
 
   fileprivate let publishUpdateError: ErrorEnvelope?
 
-  fileprivate let fetchMessageThreadResponse: MessageThread
+  fileprivate let fetchMessageThreadResult: Result<MessageThread?, ErrorEnvelope>?
   fileprivate let fetchMessageThreadsResponse: [MessageThread]
 
   fileprivate let fetchProjectResponse: Project?
@@ -112,6 +113,7 @@ internal struct MockService: ServiceType {
   fileprivate let submitApplePayResponse: SubmitApplePayEnvelope
 
   fileprivate let toggleStarResponse: StarEnvelope?
+  fileprivate let toggleStarError: ErrorEnvelope?
 
   fileprivate let unfollowFriendError: ErrorEnvelope?
 
@@ -128,6 +130,7 @@ internal struct MockService: ServiceType {
                 serverConfig: ServerConfigType,
                 oauthToken: OauthTokenAuthType?,
                 language: String,
+                currency: String,
                 buildVersion: String = "1") {
 
     self.init(
@@ -135,6 +138,7 @@ internal struct MockService: ServiceType {
       serverConfig: serverConfig,
       oauthToken: oauthToken,
       language: language,
+      currency: currency,
       buildVersion: buildVersion,
       fetchActivitiesResponse: nil
     )
@@ -144,6 +148,7 @@ internal struct MockService: ServiceType {
                 serverConfig: ServerConfigType = ServerConfig.production,
                 oauthToken: OauthTokenAuthType? = nil,
                 language: String = "en",
+                currency: String = "USD",
                 buildVersion: String = "1",
                 changePaymentMethodResult: Result<ChangePaymentMethodEnvelope, ErrorEnvelope>? = nil,
                 createPledgeResult: Result<CreatePledgeEnvelope, ErrorEnvelope>? = nil,
@@ -152,7 +157,7 @@ internal struct MockService: ServiceType {
                 fetchActivitiesResponse: [Activity]? = nil,
                 fetchActivitiesError: ErrorEnvelope? = nil,
                 fetchBackingResponse: Backing = .template,
-                fetchCategoriesResponse: CategoriesEnvelope? = nil,
+                fetchGraphCategoriesResponse: RootCategoriesEnvelope? = nil,
                 fetchCheckoutResponse: CheckoutEnvelope? = nil,
                 fetchCheckoutError: ErrorEnvelope? = nil,
                 fetchCommentsResponse: [Comment]? = nil,
@@ -171,7 +176,7 @@ internal struct MockService: ServiceType {
                 removeAttachmentResponse: UpdateDraft.Image? = nil,
                 removeAttachmentError: ErrorEnvelope? = nil,
                 publishUpdateError: ErrorEnvelope? = nil,
-                fetchMessageThreadResponse: MessageThread? = nil,
+                fetchMessageThreadResult: Result<MessageThread?, ErrorEnvelope>? = nil,
                 fetchMessageThreadsResponse: [MessageThread]? = nil,
                 fetchProjectActivitiesResponse: [Activity]? = nil,
                 fetchProjectActivitiesError: ErrorEnvelope? = nil,
@@ -209,6 +214,7 @@ internal struct MockService: ServiceType {
                 signupError: ErrorEnvelope? = nil,
                 submitApplePayResponse: SubmitApplePayEnvelope = .template,
                 toggleStarResponse: StarEnvelope? = nil,
+                toggleStarError: ErrorEnvelope? = nil,
                 unfollowFriendError: ErrorEnvelope? = nil,
                 updateDraftError: ErrorEnvelope? = nil,
                 updatePledgeResult: Result<UpdatePledgeEnvelope, ErrorEnvelope>? = nil,
@@ -220,6 +226,7 @@ internal struct MockService: ServiceType {
     self.serverConfig = serverConfig
     self.oauthToken = oauthToken
     self.language = language
+    self.currency = currency
     self.buildVersion = buildVersion
 
     self.changePaymentMethodResult = changePaymentMethodResult
@@ -238,8 +245,8 @@ internal struct MockService: ServiceType {
 
     self.fetchBackingResponse = fetchBackingResponse
 
-    self.fetchCategoriesResponse = fetchCategoriesResponse ?? (.template
-      |> CategoriesEnvelope.lens.categories .~ [
+    self.fetchGraphCategoriesResponse = fetchGraphCategoriesResponse ?? (.template
+      |> RootCategoriesEnvelope.lens.categories .~ [
         .art,
         .filmAndVideo,
         .illustration,
@@ -278,7 +285,7 @@ internal struct MockService: ServiceType {
 
     self.publishUpdateError = publishUpdateError
 
-    self.fetchMessageThreadResponse = fetchMessageThreadResponse ?? .template
+    self.fetchMessageThreadResult = fetchMessageThreadResult
 
     self.fetchMessageThreadsResponse = fetchMessageThreadsResponse ?? [
       .template |> MessageThread.lens.id .~ 1,
@@ -361,6 +368,7 @@ internal struct MockService: ServiceType {
     self.submitApplePayResponse = submitApplePayResponse
 
     self.toggleStarResponse = toggleStarResponse
+    self.toggleStarError = toggleStarError
 
     self.unfollowFriendError = unfollowFriendError
 
@@ -506,6 +514,23 @@ internal struct MockService: ServiceType {
     )
   }
 
+  internal func fetchGraphCategories(query: NonEmptySet<Query>)
+    -> SignalProducer<RootCategoriesEnvelope, GraphError> {
+    if let response = self.fetchGraphCategoriesResponse {
+      return SignalProducer(value: response)
+    }
+    return .empty
+  }
+
+  internal func fetchGraphCategory(query: NonEmptySet<Query>)
+    -> SignalProducer<RootCategoriesEnvelope.Category, GraphError> {
+    return SignalProducer(value: .template |> RootCategoriesEnvelope.Category.lens.id .~ "\(query.head)")
+  }
+
+  internal func fetchGraph<A>(query: NonEmptySet<Query>) -> SignalProducer<A, GraphError> where A: Decodable {
+    return .empty
+  }
+
   internal func unfollowFriend(userId id: Int) -> SignalProducer<VoidEnvelope, ErrorEnvelope> {
     if let error = unfollowFriendError {
       return SignalProducer(error: error)
@@ -594,6 +619,9 @@ internal struct MockService: ServiceType {
 
   internal func fetchMessageThread(messageThreadId: Int)
     -> SignalProducer<MessageThreadEnvelope, ErrorEnvelope> {
+      if let error = self.fetchMessageThreadResult?.error {
+        return SignalProducer(error: error)
+      }
 
       return SignalProducer(
         value: MessageThreadEnvelope(
@@ -603,25 +631,32 @@ internal struct MockService: ServiceType {
             .template |> Message.lens.id .~ 2,
             .template |> Message.lens.id .~ 3
           ],
-          messageThread: self.fetchMessageThreadResponse
+          messageThread: self.fetchMessageThreadResult?.value as? MessageThread ?? .template
         )
       )
   }
 
   internal func fetchMessageThread(backing: Backing)
-    -> SignalProducer<MessageThreadEnvelope, ErrorEnvelope> {
+    -> SignalProducer<MessageThreadEnvelope?, ErrorEnvelope> {
+      if let error = self.fetchMessageThreadResult?.error {
+        return SignalProducer(error: error)
+      }
 
-      return SignalProducer(
-        value: MessageThreadEnvelope(
-          participants: [.template, .template |> User.lens.id .~ 2],
-          messages: [
-            .template |> Message.lens.id .~ 1,
-            .template |> Message.lens.id .~ 2,
-            .template |> Message.lens.id .~ 3
-          ],
-          messageThread: self.fetchMessageThreadResponse
+      if let thread = self.fetchMessageThreadResult?.value as? MessageThread {
+        return SignalProducer(
+          value: MessageThreadEnvelope(
+            participants: [.template, .template |> User.lens.id .~ 2],
+            messages: [
+              .template |> Message.lens.id .~ 1,
+              .template |> Message.lens.id .~ 2,
+              .template |> Message.lens.id .~ 3
+            ],
+            messageThread: thread
+          )
         )
-      )
+      } else {
+        return SignalProducer(value: nil)
+      }
   }
 
   internal func fetchMessageThreads(mailbox: Mailbox, project: Project?)
@@ -849,18 +884,14 @@ internal struct MockService: ServiceType {
     return SignalProducer(value: fetchUserResponse ?? user)
   }
 
-  internal func fetchCategories() -> SignalProducer<CategoriesEnvelope, ErrorEnvelope> {
-
-    return SignalProducer(value: self.fetchCategoriesResponse ?? .template)
-  }
-
-  internal func fetchCategory(param: Param) -> SignalProducer<KsApi.Category, ErrorEnvelope> {
+  internal func fetchCategory(param: Param)
+    -> SignalProducer<KsApi.RootCategoriesEnvelope.Category, GraphError> {
     switch param {
     case let .id(id):
-      return SignalProducer(value: .template |> Category.lens.id .~ id)
-    case let .slug(slug):
-      return SignalProducer(value: .template |> Category.lens.slug .~ slug)
-    }
+      return SignalProducer(value: .template |> RootCategoriesEnvelope.Category.lens.id .~ "\(id)")
+    default:
+      return .empty
+      }
   }
 
   internal func incrementVideoCompletion(forProject project: Project) ->
@@ -882,8 +913,13 @@ internal struct MockService: ServiceType {
   }
 
   internal func toggleStar(_ project: Project) -> SignalProducer<StarEnvelope, ErrorEnvelope> {
-    guard let toggleStarResponse = toggleStarResponse else { return .init(error: .couldNotParseJSON) }
-    return .init(value: toggleStarResponse)
+   if let error = self.toggleStarError {
+        return SignalProducer(error: error)
+      } else if let toggleStar = self.toggleStarResponse {
+        return SignalProducer(value: toggleStar)
+      }
+
+      return SignalProducer(value: .template)
   }
 
   internal func star(_ project: Project) -> SignalProducer<StarEnvelope, ErrorEnvelope> {
@@ -1164,7 +1200,7 @@ private extension MockService {
           fetchActivitiesResponse: $1.fetchActivitiesResponse,
           fetchActivitiesError: $1.fetchActivitiesError,
           fetchBackingResponse: $1.fetchBackingResponse,
-          fetchCategoriesResponse: $1.fetchCategoriesResponse,
+          fetchGraphCategoriesResponse: $1.fetchGraphCategoriesResponse,
           fetchCommentsResponse: $1.fetchCommentsResponse,
           fetchCommentsError: $1.fetchCommentsError,
           fetchConfigResponse: $1.fetchConfigResponse,
@@ -1181,7 +1217,7 @@ private extension MockService {
           removeAttachmentResponse: $1.removeAttachmentResponse,
           removeAttachmentError: $1.removeAttachmentError,
           publishUpdateError: $1.publishUpdateError,
-          fetchMessageThreadResponse: $1.fetchMessageThreadResponse,
+          fetchMessageThreadResult: $1.fetchMessageThreadResult,
           fetchMessageThreadsResponse: $1.fetchMessageThreadsResponse,
           fetchProjectActivitiesResponse: $1.fetchProjectActivitiesResponse,
           fetchProjectActivitiesError: $1.fetchProjectActivitiesError,
@@ -1218,6 +1254,7 @@ private extension MockService {
           signupError: $1.signupError,
           submitApplePayResponse: $1.submitApplePayResponse,
           toggleStarResponse: $1.toggleStarResponse,
+          toggleStarError: $1.toggleStarError,
           unfollowFriendError: $1.unfollowFriendError,
           updateDraftError: $1.updateDraftError,
           updatePledgeResult: $1.updatePledgeResult,

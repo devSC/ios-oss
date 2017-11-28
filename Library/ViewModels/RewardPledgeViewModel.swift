@@ -316,7 +316,7 @@ RewardPledgeViewModelOutputs {
 
     self.countryLabelText = Signal.merge(
       self.viewDidLoadProperty.signal.mapConst(""),
-      selectedShipping.skipNil().map { $0.location.displayableName }
+      selectedShipping.skipNil().map { $0.location.localizedName }
     )
 
     let shippingAmount = Signal.combineLatest(
@@ -362,13 +362,12 @@ RewardPledgeViewModelOutputs {
     self.expandRewardDescription = self.expandDescriptionTappedProperty.signal
 
     self.shippingLocationsLabelText = reward
-      .map { $0.shipping.summary }
-      .skipNil()
+      .map { $0.shipping.summary ?? "" }
 
     self.estimatedDeliveryDateLabelText = reward
       .map { reward in
         reward.estimatedDeliveryOn.map {
-          Format.date(secondsInUTC: $0, dateFormat: "MMM yyyy", timeZone: UTCTimeZone)
+          Format.date(secondsInUTC: $0, template: "MMMyyyy", timeZone: UTCTimeZone)
         }
       }
       .skipNil()
@@ -939,7 +938,6 @@ RewardPledgeViewModelOutputs {
   public var inputs: RewardPledgeViewModelInputs { return self }
   public var outputs: RewardPledgeViewModelOutputs { return self }
 }
-// swiftlint:enable type_body_length
 
 private func paymentRequest(forProject project: Project,
                             reward: Reward,
@@ -1181,7 +1179,7 @@ private func navigationTitle(forProject project: Project, reward: Reward) -> Str
   )
 }
 
-fileprivate enum PledgeError: Error {
+private enum PledgeError: Error {
   case maximumAmount(ErrorEnvelope)
   case minimumAmount(ErrorEnvelope)
   case other(ErrorEnvelope)

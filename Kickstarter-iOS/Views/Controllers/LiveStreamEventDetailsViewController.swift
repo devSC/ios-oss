@@ -54,13 +54,12 @@ internal final class LiveStreamEventDetailsViewController: UIViewController {
     self.subscribeButton.layer.cornerRadius = self.subscribeButton.frame.size.height / 2
   }
 
-  //swiftlint:disable:next function_body_length
   internal override func bindStyles() {
     super.bindStyles()
 
     _ = self
       |> baseLiveStreamControllerStyle()
-      |> UIViewController.lens.view.backgroundColor .~ .ksr_navy_700
+      |> UIViewController.lens.view.backgroundColor .~ .ksr_dark_grey_900
 
     _  = self.availableForLabel
       |> UILabel.lens.font .~ UIFont.ksr_footnote(size: 11).italicized

@@ -15,12 +15,14 @@ public protocol ServiceType {
   var serverConfig: ServerConfigType { get }
   var oauthToken: OauthTokenAuthType? { get }
   var language: String { get }
+  var currency: String { get }
   var buildVersion: String { get }
 
   init(appId: String,
        serverConfig: ServerConfigType,
        oauthToken: OauthTokenAuthType?,
        language: String,
+       currency: String,
        buildVersion: String)
 
   /// Returns a new service with the oauth token replaced.
@@ -68,12 +70,6 @@ public protocol ServiceType {
   func fetchBacking(forProject project: Project, forUser user: User)
     -> SignalProducer<Backing, ErrorEnvelope>
 
-  /// Fetch all categories.
-  func fetchCategories() -> SignalProducer<CategoriesEnvelope, ErrorEnvelope>
-
-  /// Fetch the newest data for a particular category.
-  func fetchCategory(param: Param) -> SignalProducer<Category, ErrorEnvelope>
-
   /// Fetch a checkout's status.
   func fetchCheckout(checkoutUrl url: String) -> SignalProducer<CheckoutEnvelope, ErrorEnvelope>
 
@@ -104,12 +100,19 @@ public protocol ServiceType {
   /// Fetch friend stats.
   func fetchFriendStats() -> SignalProducer<FriendStatsEnvelope, ErrorEnvelope>
 
+  /// Fetch Categories objects using graphQL.
+  func fetchGraphCategories(query: NonEmptySet<Query>) -> SignalProducer<RootCategoriesEnvelope, GraphError>
+
+  /// Fetch Category objects using graphQL.
+  func fetchGraphCategory(query: NonEmptySet<Query>)
+    -> SignalProducer<RootCategoriesEnvelope.Category, GraphError>
+
   /// Fetches all of the messages in a particular message thread.
   func fetchMessageThread(messageThreadId: Int)
     -> SignalProducer<MessageThreadEnvelope, ErrorEnvelope>
 
   /// Fetches all of the messages related to a particular backing.
-  func fetchMessageThread(backing: Backing) -> SignalProducer<MessageThreadEnvelope, ErrorEnvelope>
+  func fetchMessageThread(backing: Backing) -> SignalProducer<MessageThreadEnvelope?, ErrorEnvelope>
 
   /// Fetches all of the messages in a particular mailbox and specific to a particular project.
   func fetchMessageThreads(mailbox: Mailbox, project: Project?)
@@ -301,7 +304,7 @@ extension ServiceType {
 
    - returns: A new URL request that is properly configured for the server.
    */
-  public func preparedRequest(forRequest originalRequest: URLRequest, query: [String:Any] = [:])
+  public func preparedRequest(forRequest originalRequest: URLRequest, query: [String: Any] = [:])
     -> URLRequest {
 
       var request = originalRequest
@@ -347,7 +350,7 @@ extension ServiceType {
 
    - returns: A new URL request that is properly configured for the server.
    */
-  public func preparedRequest(forURL url: URL, method: Method = .GET, query: [String:Any] = [:])
+  public func preparedRequest(forURL url: URL, method: Method = .GET, query: [String: Any] = [:])
     -> URLRequest {
 
       var request = URLRequest(url: url)
@@ -355,13 +358,47 @@ extension ServiceType {
       return self.preparedRequest(forRequest: request, query: query)
   }
 
+  /**
+   Prepares a URL request to be sent to the server.
+
+   - parameter originalRequest: The request that should be prepared.
+   - parameter queryString:     The GraphQL query string for the request.
+
+   - returns: A new URL request that is properly configured for the server.
+   */
+  public func preparedRequest(forRequest originalRequest: URLRequest, queryString: String)
+    -> URLRequest {
+
+      var request = originalRequest
+      guard let URL = request.url else {
+        return originalRequest
+      }
+
+      request.httpBody = "query=\(queryString)".data(using: .utf8)
+
+      // swiftlint:disable:next force_unwrapping
+      let components = URLComponents(url: URL, resolvingAgainstBaseURL: false)!
+      request.url = components.url
+      request.allHTTPHeaderFields = self.defaultHeaders
+
+      return request
+  }
+
+  public func preparedRequest(forURL url: URL, queryString: String)
+    -> URLRequest {
+
+      var request = URLRequest(url: url)
+      request.httpMethod = Method.POST.rawValue
+      return self.preparedRequest(forRequest: request, queryString: queryString)
+  }
+
   public func isPrepared(request: URLRequest) -> Bool {
     return request.value(forHTTPHeaderField: "Authorization") == authorizationHeader
       && request.value(forHTTPHeaderField: "Kickstarter-iOS-App") != nil
   }
 
-  fileprivate var defaultHeaders: [String:String] {
-    var headers: [String:String] = [:]
+  fileprivate var defaultHeaders: [String: String] {
+    var headers: [String: String] = [:]
     headers["Accept-Language"] = self.language
     headers["Authorization"] = self.authorizationHeader
     headers["Kickstarter-App-Id"] = self.appId
@@ -388,9 +425,10 @@ extension ServiceType {
     }
   }
 
-  fileprivate var defaultQueryParams: [String:String] {
-    var query: [String:String] = [:]
+  fileprivate var defaultQueryParams: [String: String] {
+    var query: [String: String] = [:]
     query["client_id"] = self.serverConfig.apiClientAuth.clientId
+    query["currency"] = self.currency
     query["oauth_token"] = self.oauthToken?.token
     return query
   }
@@ -398,7 +436,7 @@ extension ServiceType {
   fileprivate func queryComponents(_ key: String, _ value: Any) -> [(String, String)] {
     var components: [(String, String)] = []
 
-    if let dictionary = value as? [String:Any] {
+    if let dictionary = value as? [String: Any] {
       for (nestedKey, value) in dictionary {
         components += queryComponents("\(key)[\(nestedKey)]", value)
       }
@@ -413,4 +451,3 @@ extension ServiceType {
     return components
   }
 }
-// swiftlint:enable file_length

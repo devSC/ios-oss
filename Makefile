@@ -4,13 +4,13 @@ BUILD_FLAGS = -scheme $(SCHEME) -destination $(DESTINATION)
 SCHEME ?= $(TARGET)-$(PLATFORM)
 TARGET ?= Kickstarter-Framework
 PLATFORM ?= iOS
-OS ?= 10.2
+OS ?= 11.1
 RELEASE ?= beta
 BRANCH ?= master
 DIST_BRANCH = $(RELEASE)-dist
 
 ifeq ($(PLATFORM),iOS)
-	DESTINATION ?= 'platform=iOS Simulator,name=iPhone 7,OS=10.2'
+	DESTINATION ?= 'platform=iOS Simulator,name=iPhone 8,OS=$(OS)'
 endif
 
 XCPRETTY :=
@@ -84,6 +84,15 @@ deploy:
 	@git branch -f $(DIST_BRANCH) private/$(BRANCH)
 	@git push -f private $(DIST_BRANCH)
 	@git branch -d $(DIST_BRANCH)
+
+	@echo "Deploy has been kicked off to CircleCI!"
+
+alpha:
+	@echo "Deploying private/alpha-dist..."
+
+	@git branch -f alpha-dist private/alpha-dist
+	@git push -f private alpha-dist
+	@git branch -d alpha-dist
 
 	@echo "Deploy has been kicked off to CircleCI!"
 
