@@ -49,11 +49,6 @@ internal final class ProjectPamphletMainCell: UITableViewCell, ValueCell {
   @IBOutlet fileprivate weak var readMoreButton: UIButton!
   @IBOutlet fileprivate weak var stateLabel: UILabel!
   @IBOutlet fileprivate weak var statsStackView: UIStackView!
-  /* NB: We've introduced a height constraint here since iOS 11.0
-   * Try removing it in subsequent versions, it worked just fine without it before 11.0
-   * ¯\_(ツ)_/¯
-   */
-  @IBOutlet fileprivate weak var statsStackViewHeightConstraint: NSLayoutConstraint!
   @IBOutlet fileprivate weak var youreABackerContainerView: UIView!
   @IBOutlet fileprivate weak var youreABackerLabel: UILabel!
 
@@ -103,10 +98,11 @@ internal final class ProjectPamphletMainCell: UITableViewCell, ValueCell {
     _ = [self.backersSubtitleLabel, self.deadlineSubtitleLabel, self.pledgeSubtitleLabel]
       ||> UILabel.lens.textColor .~ .ksr_text_dark_grey_500
       ||> UILabel.lens.font .~ .ksr_caption1(size: 13)
-      ||> UILabel.lens.numberOfLines .~ 2
+      ||> UILabel.lens.numberOfLines .~ 1
 
     _ = [self.backersTitleLabel, self.deadlineTitleLabel, self.pledgedTitleLabel]
       ||> UILabel.lens.font .~ .ksr_headline(size: 13)
+      ||> UILabel.lens.numberOfLines .~ 1
 
     _ = self.blurbAndReadMoreStackView
       |> UIStackView.lens.spacing .~ 0
@@ -132,7 +128,7 @@ internal final class ProjectPamphletMainCell: UITableViewCell, ValueCell {
           ? .init(topBottom: Styles.grid(6), leftRight: Styles.grid(16))
           : .init(top: Styles.grid(4), left: Styles.grid(4), bottom: Styles.grid(3), right: Styles.grid(4))
       }
-      |> UIStackView.lens.layoutMarginsRelativeArrangement .~ true
+      |> UIStackView.lens.isLayoutMarginsRelativeArrangement .~ true
       |> UIStackView.lens.spacing .~ Styles.grid(4)
 
     _ = self.conversionLabel
@@ -195,10 +191,10 @@ internal final class ProjectPamphletMainCell: UITableViewCell, ValueCell {
       |> UIStackView.lens.spacing .~ Styles.grid(2)
 
     _ = self.readMoreButton
-      |> UIButton.lens.titleColor(forState: .normal) .~ .ksr_text_dark_grey_900
-      |> UIButton.lens.titleColor(forState: .highlighted) .~ .ksr_text_dark_grey_500
+      |> UIButton.lens.titleColor(for: .normal) .~ .ksr_text_dark_grey_900
+      |> UIButton.lens.titleColor(for: .highlighted) .~ .ksr_text_dark_grey_500
       |> UIButton.lens.titleLabel.font .~ .ksr_headline(size: 15)
-      |> UIButton.lens.title(forState: .normal) %~ { _ in Strings.Read_more_about_the_campaign_arrow() }
+      |> UIButton.lens.title(for: .normal) %~ { _ in Strings.Read_more_about_the_campaign_arrow() }
       |> UIButton.lens.contentEdgeInsets .~ .init(top: Styles.grid(3) - 1,
                                                   left: 0,
                                                   bottom: Styles.grid(4) - 1,
@@ -210,8 +206,6 @@ internal final class ProjectPamphletMainCell: UITableViewCell, ValueCell {
 
     _ = self.statsStackView
       |> UIStackView.lens.isAccessibilityElement .~ true
-
-    self.statsStackViewHeightConstraint.constant = Styles.grid(5)
 
     _ = self.youreABackerContainerView
       |> roundedStyle(cornerRadius: 2)

@@ -13,17 +13,23 @@ internal final class DiscoveryNavigationHeaderViewController: UIViewController {
   fileprivate let viewModel: DiscoveryNavigationHeaderViewModelType = DiscoveryNavigationHeaderViewModel()
 
   @IBOutlet fileprivate weak var arrowImageView: UIImageView!
-  @IBOutlet fileprivate weak var dividerLabel: UILabel!
-  @IBOutlet fileprivate weak var favoriteContainerView: UIView!
-  @IBOutlet fileprivate weak var favoriteButton: UIButton!
   @IBOutlet fileprivate weak var bgView: UIView!
-  @IBOutlet fileprivate weak var heartImageView: UIImageView!
-  @IBOutlet fileprivate weak var heartOutlineImageView: UIImageView!
+  @IBOutlet fileprivate weak var bookmarkImageView: UIImageView!
+  @IBOutlet fileprivate weak var bookmarkOutlineImageView: UIImageView!
+  @IBOutlet fileprivate weak var dividerLabel: UILabel!
+  @IBOutlet fileprivate weak var exploreLabel: UILabel!
+  @IBOutlet fileprivate weak var favoriteButton: UIButton!
+  @IBOutlet fileprivate weak var favoriteContainerView: UIView!
   @IBOutlet fileprivate weak var primaryLabel: UILabel!
   @IBOutlet fileprivate weak var secondaryLabel: UILabel!
   @IBOutlet fileprivate weak var titleButton: UIButton!
-  @IBOutlet fileprivate weak var titleStackView: UIStackView!
+  @IBOutlet fileprivate weak var containerStackView: UIStackView!
   @IBOutlet fileprivate weak var outerStackViewTopConstraint: NSLayoutConstraint!
+  @IBOutlet fileprivate weak var titleStackView: UIStackView! {
+    didSet {
+      titleStackView.pinBackground()
+    }
+  }
 
   internal weak var delegate: DiscoveryNavigationHeaderViewDelegate?
 
@@ -49,6 +55,7 @@ internal final class DiscoveryNavigationHeaderViewController: UIViewController {
     internal override func bindViewModel() {
     super.bindViewModel()
 
+    self.exploreLabel.rac.hidden = self.viewModel.outputs.exploreLabelIsHidden
     self.favoriteContainerView.rac.hidden = self.viewModel.outputs.favoriteViewIsHidden
     self.favoriteButton.rac.accessibilityLabel = self.viewModel.outputs.favoriteButtonAccessibilityLabel
     self.primaryLabel.rac.text = self.viewModel.outputs.primaryLabelText
@@ -149,18 +156,31 @@ internal final class DiscoveryNavigationHeaderViewController: UIViewController {
       |> UILabel.lens.isAccessibilityElement .~ false
       |> UILabel.lens.textColor .~ discoveryPrimaryColor()
 
+    _ = self.exploreLabel
+      |> UILabel.lens.font %~~ { _, label in
+          label.traitCollection.isRegularRegular
+            ? .ksr_body(size: 18)
+            : .ksr_body(size: 17)
+      }
+      |> UILabel.lens.text %~ { _ in Strings.Explore() }
+
     _ = self.favoriteContainerView
       |> UIView.lens.layoutMargins .~ .init(left: Styles.grid(2))
 
-    _ = self.heartImageView
+    _ = self.bookmarkImageView
       |> UIView.lens.tintColor .~ discoveryPrimaryColor()
 
-    _ = self.heartOutlineImageView
+    _ = self.bookmarkOutlineImageView
       |> UIView.lens.tintColor .~ discoveryPrimaryColor()
 
     _ = self.primaryLabel
       |> UILabel.lens.isAccessibilityElement .~ false
       |> UILabel.lens.textColor .~ discoveryPrimaryColor()
+      |> UILabel.lens.font %~~ { _, label in
+        label.traitCollection.isRegularRegular
+          ? UIFont.ksr_body(size: 18)
+          : UIFont.ksr_body(size: 17)
+    }
 
     _ = self.secondaryLabel
       |> UILabel.lens.font %~~ { _, label in
@@ -171,7 +191,7 @@ internal final class DiscoveryNavigationHeaderViewController: UIViewController {
       |> UILabel.lens.isAccessibilityElement .~ false
       |> UILabel.lens.textColor .~ discoveryPrimaryColor()
 
-    _ = self.titleStackView
+    _ = self.containerStackView
       |> discoveryNavTitleStackViewStyle
 
     if self.view.traitCollection.isRegularRegular {
@@ -216,7 +236,7 @@ internal final class DiscoveryNavigationHeaderViewController: UIViewController {
     let duration = animated ? 0.4 : 0.0
 
     if selected {
-      self.heartImageView.transform = CGAffineTransform(scaleX: 0.0, y: 0.0)
+      self.bookmarkImageView.transform = CGAffineTransform(scaleX: 0.0, y: 0.0)
 
       UIView.animate(
         withDuration: duration,
@@ -225,9 +245,9 @@ internal final class DiscoveryNavigationHeaderViewController: UIViewController {
         initialSpringVelocity: 0.8,
         options: .curveEaseOut,
         animations: {
-         self.heartImageView.alpha = 1.0
-         self.heartImageView.transform = CGAffineTransform(scaleX: 1.0, y: 1.0)
-         self.heartOutlineImageView.transform = CGAffineTransform(scaleX: 1.4, y: 1.4)
+         self.bookmarkImageView.alpha = 1.0
+         self.bookmarkImageView.transform = CGAffineTransform(scaleX: 1.0, y: 1.0)
+         self.bookmarkOutlineImageView.transform = CGAffineTransform(scaleX: 1.4, y: 1.4)
          },
         completion: nil
       )
@@ -239,8 +259,8 @@ internal final class DiscoveryNavigationHeaderViewController: UIViewController {
         initialSpringVelocity: 0.8,
         options: .curveEaseOut,
         animations: {
-        self.heartOutlineImageView.transform = CGAffineTransform(scaleX: 1.0, y: 1.0)
-          self.heartOutlineImageView.alpha = 0.0
+        self.bookmarkOutlineImageView.transform = CGAffineTransform(scaleX: 1.0, y: 1.0)
+          self.bookmarkOutlineImageView.alpha = 0.0
         },
         completion: nil
       )
@@ -252,9 +272,9 @@ internal final class DiscoveryNavigationHeaderViewController: UIViewController {
         initialSpringVelocity: 0.8,
         options: .curveEaseOut,
         animations: {
-         self.heartImageView.transform = CGAffineTransform(scaleX: 0.0, y: 0.0)
-         self.heartOutlineImageView.transform = CGAffineTransform(scaleX: 1.4, y: 1.4)
-         self.heartOutlineImageView.alpha = 1.0
+         self.bookmarkImageView.transform = CGAffineTransform(scaleX: 0.0, y: 0.0)
+         self.bookmarkOutlineImageView.transform = CGAffineTransform(scaleX: 1.4, y: 1.4)
+         self.bookmarkOutlineImageView.alpha = 1.0
         },
         completion: nil
       )
@@ -266,10 +286,10 @@ internal final class DiscoveryNavigationHeaderViewController: UIViewController {
         initialSpringVelocity: 0.8,
         options: .curveEaseOut,
         animations: {
-         self.heartOutlineImageView.transform = CGAffineTransform(scaleX: 1.0, y: 1.0)
+         self.bookmarkOutlineImageView.transform = CGAffineTransform(scaleX: 1.0, y: 1.0)
         },
         completion: { _ in
-         self.heartImageView.alpha = 0.0
+         self.bookmarkImageView.alpha = 0.0
         }
       )
     }

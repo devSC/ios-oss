@@ -51,23 +51,23 @@ ActivityFriendBackingViewModelInputs, ActivityFriendBackingViewModelOutputs {
 
     self.friendTitle = activity
       .map { activity in
-        guard let categoryId = activity.project?.category.intID else {
+        guard let categoryId = activity.project?.category.parentId ?? activity.project?.category.id else {
           return NSAttributedString(string: "")
         }
 
         let title = string(forCategoryId: categoryId, friendName: activity.user?.name ?? "")
         return title.simpleHtmlAttributedString(
           base: [
-            NSFontAttributeName: UIFont.ksr_subhead(size: 12),
-            NSForegroundColorAttributeName: UIColor.ksr_text_dark_grey_500
+            NSAttributedStringKey.font: UIFont.ksr_subhead(size: 12),
+            NSAttributedStringKey.foregroundColor: UIColor.ksr_text_dark_grey_500
           ],
           bold: [
-            NSFontAttributeName: UIFont.ksr_subhead(size: 12),
-            NSForegroundColorAttributeName: UIColor.ksr_text_dark_grey_900
+            NSAttributedStringKey.font: UIFont.ksr_subhead(size: 12),
+            NSAttributedStringKey.foregroundColor: UIColor.ksr_text_dark_grey_900
           ],
           italic: [
-            NSFontAttributeName: UIFont.ksr_subhead(size: 12),
-            NSForegroundColorAttributeName: UIColor.ksr_text_dark_grey_900
+            NSAttributedStringKey.font: UIFont.ksr_subhead(size: 12),
+            NSAttributedStringKey.foregroundColor: UIColor.ksr_text_dark_grey_900
           ])
           ?? .init()
     }
@@ -118,8 +118,8 @@ private func progressBarColor(forActivityCategory category: Activity.Category) -
 }
 
 // swiftlint:disable cyclomatic_complexity
-private func string(forCategoryId id: Int, friendName: String) -> String {
-  let root = RootCategory(categoryId: id)
+private func string(forCategoryId id: String, friendName: String) -> String {
+  let root = RootCategory(categoryId: Int(id) ?? -1)
   switch root {
   case .art:          return Strings.Friend_backed_art_project(friend_name: friendName)
   case .comics:       return Strings.Friend_backed_comics_project(friend_name: friendName)
@@ -146,7 +146,7 @@ private func percentFundedString(forActivity activity: Activity) -> NSAttributed
   let percentage = Format.percentage(project.stats.percentFunded)
 
     return NSAttributedString(string: percentage, attributes: [
-      NSFontAttributeName: UIFont.ksr_caption1(size: 10),
-      NSForegroundColorAttributeName: UIColor.ksr_green_700
+      NSAttributedStringKey.font: UIFont.ksr_caption1(size: 10),
+      NSAttributedStringKey.foregroundColor: UIColor.ksr_green_700
       ])
 }

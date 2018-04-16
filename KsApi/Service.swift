@@ -4,7 +4,7 @@ import Prelude
 import ReactiveExtensions
 import ReactiveSwift
 
-private extension Bundle {
+public extension Bundle {
   var _buildVersion: String {
     return (self.infoDictionary?["CFBundleVersion"] as? String) ?? "1"
   }
@@ -182,7 +182,7 @@ public struct Service: ServiceType {
   }
 
   public func fetchGraphCategory(query: NonEmptySet<Query>)
-    -> SignalProducer<RootCategoriesEnvelope.Category, GraphError> {
+    -> SignalProducer<CategoryEnvelope, GraphError> {
       return fetch(query: query)
   }
 
@@ -290,6 +290,11 @@ public struct Service: ServiceType {
 
   public func fetchUnansweredSurveyResponses() -> SignalProducer<[SurveyResponse], ErrorEnvelope> {
     return request(.unansweredSurveyResponses)
+  }
+
+  public func backingUpdate(forProject project: Project, forUser user: User, received: Bool) ->
+    SignalProducer<Backing, ErrorEnvelope> {
+    return request(.backingUpdate(projectId: project.id, backerId: user.id, received: received))
   }
 
   public func followAllFriends() -> SignalProducer<VoidEnvelope, ErrorEnvelope> {
@@ -527,7 +532,9 @@ public struct Service: ServiceType {
         }
         observer.sendCompleted()
       }
-      disposable.add(task.cancel)
+      disposable.observeEnded {
+        task.cancel()
+      }
       task.resume()
     }
   }

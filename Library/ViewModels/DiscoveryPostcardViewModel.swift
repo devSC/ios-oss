@@ -160,7 +160,7 @@ public final class DiscoveryPostcardViewModel: DiscoveryPostcardViewModelType,
 
     let backersTitleAndSubtitleText = configuredProject.map { project -> (String?, String?) in
       let string = Strings.Backers_count_separator_backers(backers_count: project.stats.backersCount)
-      let parts = string.characters.split(separator: "\n").map(String.init)
+      let parts = string.split(separator: "\n").map(String.init)
       return (parts.first, parts.last)
     }
 
@@ -331,17 +331,17 @@ public final class DiscoveryPostcardViewModel: DiscoveryPostcardViewModelType,
     self.projectFromNotificationProperty.value = project
   }
 
-  fileprivate let saveButtonTappedProperty = MutableProperty()
+  fileprivate let saveButtonTappedProperty = MutableProperty(())
   public func saveButtonTapped() {
     self.saveButtonTappedProperty.value = ()
   }
 
-  fileprivate let userSessionStartedProperty = MutableProperty()
+  fileprivate let userSessionStartedProperty = MutableProperty(())
   public func userSessionStarted() {
     self.userSessionStartedProperty.value = ()
   }
 
-  fileprivate let userSessionEndedProperty = MutableProperty()
+  fileprivate let userSessionEndedProperty = MutableProperty(())
   public func userSessionEnded() {
     self.userSessionEndedProperty.value = ()
   }

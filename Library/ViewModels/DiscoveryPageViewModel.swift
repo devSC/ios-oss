@@ -149,14 +149,18 @@ public final class DiscoveryPageViewModel: DiscoveryPageViewModelType, Discovery
 
     self.asyncReloadData = self.projects.take(first: 1).ignoreValues()
 
-    self.showEmptyState = paramsChanged
-      .takeWhen(paginatedProjects.filter { $0.isEmpty })
-      .map(emptyState(forParams:))
+    self.showEmptyState = Signal.combineLatest(paramsChanged, self.projectsAreLoading, paginatedProjects)
+      .filter { _, projectsAreLoading, projects in projectsAreLoading == false && projects.isEmpty }
+      .map { params, _, _ in
+        emptyState(forParams: params)
+      }
       .skipNil()
       .skipRepeats()
 
     self.hideEmptyState = Signal.merge(
       self.viewWillAppearProperty.signal.take(first: 1),
+      self.asyncReloadData,
+      paginatedProjects.filter { !$0.isEmpty }.ignoreValues(),
       paramsChanged.skip(first: 1).ignoreValues()
     )
 
@@ -258,15 +262,15 @@ public final class DiscoveryPageViewModel: DiscoveryPageViewModelType, Discovery
   public func transitionedToProject(at row: Int, outOf totalRows: Int) {
     self.transitionedToProjectRowAndTotalProperty.value = (row, totalRows)
   }
-  fileprivate let userSessionStartedProperty = MutableProperty()
+  fileprivate let userSessionStartedProperty = MutableProperty(())
   public func userSessionStarted() {
     self.userSessionStartedProperty.value = ()
   }
-  fileprivate let userSessionEndedProperty = MutableProperty()
+  fileprivate let userSessionEndedProperty = MutableProperty(())
   public func userSessionEnded() {
     self.userSessionEndedProperty.value = ()
   }
-  fileprivate let viewDidAppearProperty = MutableProperty()
+  fileprivate let viewDidAppearProperty = MutableProperty(())
   public func viewDidAppear() {
     self.viewDidAppearProperty.value = ()
   }
@@ -274,7 +278,7 @@ public final class DiscoveryPageViewModel: DiscoveryPageViewModelType, Discovery
   public func viewDidDisappear(animated: Bool) {
     self.viewDidDisappearProperty.value = animated
   }
-  fileprivate let viewWillAppearProperty = MutableProperty()
+  fileprivate let viewWillAppearProperty = MutableProperty(())
   public func viewWillAppear() {
     self.viewWillAppearProperty.value = ()
   }
@@ -327,6 +331,7 @@ private func refTag(fromParams params: DiscoveryParams, project: Project) -> Ref
 }
 
 private func emptyState(forParams params: DiscoveryParams) -> EmptyState? {
+
   if params.starred == .some(true) {
     return .starred
   } else if params.recommended == .some(true) {

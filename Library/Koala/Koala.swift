@@ -418,7 +418,8 @@ public final class Koala {
    - parameter page: The number of pages that have been loaded.
    */
   public func trackDiscovery(params: DiscoveryParams, page: Int) {
-    let props = properties(params: params).withAllValuesFrom(["page": page])
+    var props = properties(params: params).withAllValuesFrom(["page": page])
+    props["current_variants"] = AppEnvironment.current.config?.abExperimentsArray
 
     self.track(event: "Loaded Discovery Results", properties: props)
 
@@ -1049,8 +1050,9 @@ public final class Koala {
 
   // MARK: Messages
 
-  public func trackMessageThreadsView(mailbox: Mailbox, project: Project?) {
-    let props = project.flatMap { properties(project: $0, loggedInUser: self.loggedInUser) } ?? [:]
+  public func trackMessageThreadsView(mailbox: Mailbox, project: Project?, refTag: RefTag) {
+    let props = (project.flatMap { properties(project: $0, loggedInUser: self.loggedInUser) } ?? [:])
+      .withAllValuesFrom(["ref_tag": refTag.stringTag])
 
     switch mailbox {
     case .inbox:
@@ -1171,6 +1173,7 @@ public final class Koala {
     props["referrer_credit"] = cookieRefTag?.stringTag
     props["live_stream_type"] = prioritizedLiveStreamState(
       fromLiveStreamEvents: liveStreamEvents)?.trackingString
+    props["current_variants"] = AppEnvironment.current.config?.abExperimentsArray
 
     // Deprecated event
     self.track(event: "Project Page", properties: props.withAllValuesFrom(deprecatedProps))
@@ -1797,6 +1800,7 @@ public final class Koala {
     props["manufacturer"] = "Apple"
     props["app_version"] = self.bundle.infoDictionary?["CFBundleVersion"]
     props["app_release"] = self.bundle.infoDictionary?["CFBundleShortVersionString"]
+    props["current_variants"] = AppEnvironment.current.config?.abExperimentsArray
     props["model"] = Koala.deviceModel
     props["distinct_id"] = self.distinctId
     props["device_fingerprint"] = self.distinctId
@@ -1933,7 +1937,7 @@ private func properties(comment: Comment, prefix: String = "comment_") -> [Strin
 
   var properties: [String: Any] = [:]
 
-  properties["body_length"] = comment.body.characters.count
+  properties["body_length"] = comment.body.count
 
   return properties.prefixedKeys(prefix)
 }
@@ -1978,7 +1982,7 @@ private func properties(params: DiscoveryParams, prefix: String = "discover_") -
   return result.prefixedKeys("discover_")
 }
 
-private func properties(category: KsApi.RootCategoriesEnvelope.Category) -> [String: Any] {
+private func properties(category: KsApi.Category) -> [String: Any] {
 
   var result: [String: Any] = [:]
 

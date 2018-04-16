@@ -13,7 +13,7 @@ public final class ProjectActivityItemProvider: UIActivityItemProvider {
   }
 
   public override func activityViewController(_ activityViewController: UIActivityViewController,
-                                              itemForActivityType activityType: UIActivityType) -> Any? {
+                                              itemForActivityType activityType: UIActivityType?) -> Any? {
     if let project = self.project {
       if activityType == .mail || activityType == .message {
         return formattedString(for: project)
@@ -23,6 +23,8 @@ public final class ProjectActivityItemProvider: UIActivityItemProvider {
         )
       } else if activityType == .copyToPasteboard || activityType == .postToFacebook {
         return project.urls.web.project
+      } else {
+        return formattedString(for: project)
       }
     }
     return self.activityViewControllerPlaceholderItem(activityViewController)

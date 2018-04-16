@@ -23,6 +23,7 @@ internal struct MockService: ServiceType {
   fileprivate let fetchActivitiesError: ErrorEnvelope?
 
   fileprivate let fetchBackingResponse: Backing
+  fileprivate let backingUpdate: Backing
 
   fileprivate let fetchGraphCategoriesResponse: RootCategoriesEnvelope?
 
@@ -157,6 +158,7 @@ internal struct MockService: ServiceType {
                 fetchActivitiesResponse: [Activity]? = nil,
                 fetchActivitiesError: ErrorEnvelope? = nil,
                 fetchBackingResponse: Backing = .template,
+                backingUpdate: Backing = .template,
                 fetchGraphCategoriesResponse: RootCategoriesEnvelope? = nil,
                 fetchCheckoutResponse: CheckoutEnvelope? = nil,
                 fetchCheckoutError: ErrorEnvelope? = nil,
@@ -244,6 +246,8 @@ internal struct MockService: ServiceType {
     self.fetchActivitiesError = fetchActivitiesError
 
     self.fetchBackingResponse = fetchBackingResponse
+
+    self.backingUpdate = backingUpdate
 
     self.fetchGraphCategoriesResponse = fetchGraphCategoriesResponse ?? (.template
       |> RootCategoriesEnvelope.lens.categories .~ [
@@ -523,8 +527,8 @@ internal struct MockService: ServiceType {
   }
 
   internal func fetchGraphCategory(query: NonEmptySet<Query>)
-    -> SignalProducer<RootCategoriesEnvelope.Category, GraphError> {
-    return SignalProducer(value: .template |> RootCategoriesEnvelope.Category.lens.id .~ "\(query.head)")
+    -> SignalProducer<CategoryEnvelope, GraphError> {
+      return SignalProducer(value: CategoryEnvelope(node: .template |> Category.lens.id .~ "\(query.head)"))
   }
 
   internal func fetchGraph<A>(query: NonEmptySet<Query>) -> SignalProducer<A, GraphError> where A: Decodable {
@@ -580,6 +584,18 @@ internal struct MockService: ServiceType {
         |> Backing.lens.backerId .~ user.id
         |> Backing.lens.projectId .~ project.id
     )
+  }
+
+  func backingUpdate(forProject project: Project, forUser user: User, received: Bool)
+    -> SignalProducer<Backing, ErrorEnvelope> {
+
+      return SignalProducer(
+        value: fetchBackingResponse
+          |> Backing.lens.backer .~ user
+          |> Backing.lens.backerId .~ user.id
+          |> Backing.lens.projectId .~ project.id
+          |> Backing.lens.backerCompleted .~ received
+      )
   }
 
   internal func fetchDiscovery(paginationUrl: String)
@@ -885,10 +901,10 @@ internal struct MockService: ServiceType {
   }
 
   internal func fetchCategory(param: Param)
-    -> SignalProducer<KsApi.RootCategoriesEnvelope.Category, GraphError> {
+    -> SignalProducer<KsApi.Category, GraphError> {
     switch param {
     case let .id(id):
-      return SignalProducer(value: .template |> RootCategoriesEnvelope.Category.lens.id .~ "\(id)")
+      return SignalProducer(value: .template |> Category.lens.id .~ "\(id)")
     default:
       return .empty
       }

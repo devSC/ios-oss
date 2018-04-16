@@ -41,6 +41,7 @@ public enum Navigation {
     case root
     case comments
     case creatorBio
+    case faqs
     case friends
     case messageCreator
     case liveStream(eventId: Int)
@@ -128,6 +129,8 @@ public func == (lhs: Navigation.Project, rhs: Navigation.Project) -> Bool {
   case (.comments, .comments):
     return true
   case (.creatorBio, .creatorBio):
+    return true
+  case (.faqs, .faqs):
     return true
   case (.friends, .friends):
     return true
@@ -253,6 +256,7 @@ private let allRoutes: [String: (RouteParams) -> Decoded<Navigation>] = [
   "/projects/:creator_param/:project_param/creator_bio": creatorBio,
   "/projects/:creator_param/:project_param/dashboard": dashboard,
   "/projects/:creator_param/:project_param/description": project,
+  "/projects/:creator_param/:project_param/faqs": faqs,
   "/projects/:creator_param/:project_param/friends": friends,
   "/projects/:creator_param/:project_param/messages/new": messageCreator,
   "/projects/:creator_param/:project_param/pledge": pledgeRoot,
@@ -263,6 +267,7 @@ private let allRoutes: [String: (RouteParams) -> Decoded<Navigation>] = [
   "/projects/:creator_param/:project_param/pledge/new": pledgeNew,
   "/projects/:creator_param/:project_param/posts": posts,
   "/projects/:creator_param/:project_param/posts/:update_param": update,
+  "/projects/:creator_param/:project_param/updates": updates,
   "/projects/:creator_param/:project_param/posts/:update_param/comments": updateComments,
   "/projects/:creator_param/:project_param/surveys/:survey_param": projectSurvey,
   "/users/:user_param/surveys/:survey_response_id": userSurvey
@@ -437,6 +442,13 @@ private func dashboard(_ params: RouteParams) -> Decoded<Navigation> {
   return .success(.tab(dashboard))
 }
 
+private func faqs(_ params: RouteParams) -> Decoded<Navigation> {
+  return curry(Navigation.project)
+    <^> params <| "project_param"
+    <*> .success(.faqs)
+    <*> params <|? "ref"
+}
+
 private func friends(_ params: RouteParams) -> Decoded<Navigation> {
   return curry(Navigation.project)
     <^> params <| "project_param"
@@ -508,12 +520,9 @@ private func projectSurvey(_ params: RouteParams) -> Decoded<Navigation> {
 }
 
 private func update(_ params: RouteParams) -> Decoded<Navigation> {
-  let createProject = curry(Navigation.project)
-  let createUpdate = curry(Navigation.Project.update)
-
-  return createProject
+  return curry(Navigation.project)
     <^> params <| "project_param"
-    <*> (createUpdate
+    <*> (curry(Navigation.Project.update)
       <^> (params <| "update_param" >>- stringToInt)
       <*> .success(.root))
     <*> params <|? "ref"
@@ -525,6 +534,13 @@ private func updateComments(_ params: RouteParams) -> Decoded<Navigation> {
     <*> (curry(Navigation.Project.update)
       <^> (params <| "update_param" >>- stringToInt)
       <*> .success(.comments))
+    <*> params <|? "ref"
+}
+
+private func updates(_ params: RouteParams) -> Decoded<Navigation> {
+  return curry(Navigation.project)
+    <^> params <| "project_param"
+    <*> .success(Navigation.Project.updates)
     <*> params <|? "ref"
 }
 
@@ -571,7 +587,7 @@ private func parsedParams(url: URL, fromTemplate template: String) -> RouteParam
   for (templateComponent, urlComponent) in zip(templateComponents, urlComponents) {
     if templateComponent.hasPrefix(":") {
       // matched a token
-      let paramName = String(templateComponent.characters.dropFirst())
+      let paramName = String(templateComponent.dropFirst())
       params[paramName] = urlComponent
     } else if templateComponent != urlComponent {
       return nil

@@ -34,6 +34,7 @@
 "Backers_count_separator_backers.two" = "%{backers_count}\nバッカー";
 "Backers_count_separator_backers.zero" = "%{backers_count} バッカー";
 "Become_a_backer_to_leave_a_comment" = "コメントを残すためにバッカーになる。";
+"Bookmarks" = "ブックマーク";
 "Bring_creative_projects_to_life" = "クリエイティブなプロジェクトに生命を。";
 "Cancel_your_pledge" = "プレッジを取り消す";
 "Change_payment_method" = "支払方法の変更";
@@ -65,6 +66,7 @@
 "Creator_name_will_be_streaming_live_on_Kickstarter_in_duration" = "%{creator_name} は%{in_duration} にライブ配信を行います";
 "Creator_tips" = "アドバイス";
 "Daily_digest" = "デイリーダイジェスト";
+"Data_will_appear_here_once" = "誰かがプロジェクトをバック（支援）すると、ここにデータが表示されます。";
 "Delivered" = "発送済";
 "Discover_more_projects" = "プロジェクトをさがす";
 "Dismiss" = "破棄";
@@ -76,6 +78,7 @@
 "Ending_soon" = "終了直前";
 "Estimated_delivery" = "配達予定日：";
 "Expands_subcategories" = "サブカテゴリーを表示";
+"Explore" = "さがす";
 "Explore_creative_projects" = "クリエイティブなプロジェクトをさがす";
 "Explore_projects" = "プロジェクトをさがす";
 "Failed_to_retrieve_live_stream_event_details" = "ライブ配信の詳細を取得できませんでした";
@@ -128,6 +131,7 @@
 "Got_it" = "完了";
 "Got_it_your_survey_response_has_been_submitted" = "サーベイを送信しました！";
 "Home" = "ホーム";
+"How_backers_found_your_project" = "バッカ―があなたのプロジェクトを見つけた経緯";
 "Id_just_like_to_support_the_project" = "プロジェクトをサポートしたい";
 "Individual_Emails" = "個人メール";
 "Info" = "インフォメーション";
@@ -164,6 +168,7 @@
 "Message_backer" = "バッカーにメッセージする";
 "Message_creator" = "クリエーターにメッセージする";
 "Message_user_name" = "%{user_name} にメッセージ";
+"Name" = "Name";
 "New_pledge_activity" = "新しいプレッジ";
 "No_Results" = "該当結果なし";
 "No_comments_yet" = "まだコメントはありません。";
@@ -199,6 +204,7 @@
 "Please_log_in_or_sign_up_to_participate_in_this_live_stream_chat" = "ライブ配信でチャットに参加するためにはログインかサインアップしてください。";
 "Please_log_in_or_sign_up_to_subscribe_to_this_live_stream" = "ログインまたはサインアップして、ライブ配信を見よう！";
 "Pledge" = "プレッジする";
+"Pledge_activity" = "プレッジ";
 "Pledge_any_amount_to_help_bring_this_project_to_life" = "プレッジでプロジェクトに生命を。";
 "Pledge_to_projects_and_view_all_your_saved_and_backed_projects_in_one_place" = "プロジェクトを探す、プロジェクトにプレッジする、プロジェクトを保存する、全て一つの場所で。";
 "Pledge_to_your_favorites_then_view_all_the_projects" = "ここにバックした全プロジェクトが表示されます。";
@@ -212,6 +218,7 @@
 "Project_cancelled" = "プロジェクトが取り消されました。";
 "Project_saved" = "プロジェクトを保存しました。";
 "Projects_We_Love" = "Projects We Love";
+"Projects_youve_backed" = "バック（支援）したプロジェクト";
 "Projects_youve_launched" = "ローンチしたプロジェクト";
 "Public_comment" = "公開コメント";
 "Pursue_daring_ideas" = "大胆な\nアイディアを。";
@@ -235,6 +242,7 @@
 "Reward_Surveys.one" = "リワードサーベイ";
 "Reward_Surveys.two" = "%{reward_survey_count} リワードのサーベイ";
 "Reward_Surveys.zero" = "%{reward_survey_count} リワードのサーベイ";
+"Reward_delivered" = "リワードを受け取りましたか？";
 "Reward_estimated_for_delivery_in_date" = "<b>リワード</b>の配達予定日は%{delivery_date}";
 "Reward_selected" = "選択中のリワード";
 "Rewards_count_rewards.few" = "%{rewards_count} 種類のリワード";
@@ -254,6 +262,8 @@
 "Saved_projects" = "プロジェクトを保存";
 "Saves_project" = "プロジェクトを保存";
 "Say_something_kind" = "言葉に注意";
+"See_all_category_name_projects" = "%{category_name} プロジェクトをすべて見る";
+"Select_another_project" = "他のプロジェクトを選ぶ";
 "Select_this_reward" = "このリワードを選ぶ";
 "Select_this_reward_instead" = "このリワードを選択";
 "Send" = "送信";
@@ -289,10 +299,15 @@
 "The_replay_will_start_soon" = "リプレイが始まります";
 "There_was_a_problem_with_this_payment" = "支払いに問題があります。";
 "This_facebook_account_is_already_linked_to_another_Kickstarter_user" = "このFacebookアカウントはすでに他のKickstarterユーザーとつながっています";
+"This_project_will_only_be_funded_on_if_at_least_amount_is_pledged_by_date" = "このプロジェクトは%{date} までに、少なくとも%{amount}プレッジされるでしょう。";
 "Time_left_left" = "あと%{time_left}";
 "To_access_all_your_favorite_categories_tap_the_explore_dropdown" = "上部の「さがす」をタップし、お気に入りカテゴリにアクセス。";
 "To_read_this_project_update_you_must_be_a_backer" = "このアップデートはバッカー専用です。 続行するにはログインまたはサインアップしてください。";
+"To_see_all_rewards_view_your_project" = "すべてのリワードを確認するには、プロジェクトをご覧ください。";
 "Toggle_saving_this_project" = "プロジェクトを保存";
+"Top_pledge_sources" = "プレッジソースのトップ";
+"Top_ten_pledge_sources" = "プレッジソースのトップ10";
+"Top_ten_rewards" = "リワードのトップ10";
 "Total_pledged" = "プレッジ総計";
 "Unfollow_friend_name" = "%{friend_name} のフォロー解除";
 "Unfollows_friend_name" = "%{friend_name} のフォロー解除";
@@ -305,8 +320,10 @@
 "Upcoming_live_streams" = "ライブ配信が開始します";
 "Upcoming_with_creator_name" = "<br/><b>%{creator_name}</b>が近日配信";
 "Update_pledge" = "プレッジをアップデートする";
+"Use_this_to_keep_track_of_which_rewards_youve_received" = "受け取ったリワードを確認するにはこちらをご利用ください。";
 "Video_disabled_until_the_internet_connection_improves" = "インターネット通信状態が向上するまでビデオはご利用いいただけません。";
 "View" = "みる";
+"View_project" = "プロジェクトを見る";
 "View_your_pledge" = "プレッジをみる";
 "View_your_reward" = "リワードをみる";
 "Watch_live" = "ライブをみる";
@@ -424,7 +441,7 @@
 "activity.successfully_funded" = "資金調達に成功";
 "activity.user_name_is_now_following_you" = "%{user_name} はあなたをフォロー中！";
 "activity.user_name_launched_project" = "%{user_name} がプロジェクトをローンチ！";
-"backer_modal.backer_number" = "バッカー数 %{backer_number}";
+"backer_modal.backer_number" = "バッカーナンバー %{backer_number}";
 "backer_modal.domestic" = "国内";
 "backer_modal.international" = "全世界";
 "backer_modal.missing_location_name" = "N/A";
@@ -482,6 +499,7 @@
 "dashboard.buttons.activity" = "アクティビティ";
 "dashboard.buttons.messages" = "メッセージ";
 "dashboard.buttons.post_update" = "アップデートを投稿";
+"dashboard.buttons.project" = "プロジェクト";
 "dashboard.buttons.share" = "シェア";
 "dashboard.creator_project.currently_live" = "現在のライブ";
 "dashboard.creator_project.funded_on_deadline" = "%{deadline} に達成";
@@ -1016,12 +1034,14 @@
 "profile.settings.navbar_title" = "設定";
 "profile.settings.navbar_title_notifications" = "通知設定";
 "profile.settings.newsletter.arts" = "アート＆カルチャー";
+"profile.settings.newsletter.film" = "Kickstarter Films";
 "profile.settings.newsletter.games" = "Kickstarterが選ぶゲーム";
 "profile.settings.newsletter.happening" = "出来事";
 "profile.settings.newsletter.invent" = "インベント";
 "profile.settings.newsletter.opt_in.message" = "登録されているアドレス宛に認証メールを送信しました！%{newsletter} を購読するには、メールを確認してください。";
 "profile.settings.newsletter.opt_in.title" = "あと少し！";
 "profile.settings.newsletter.promo" = "Kickstarterのニュースとイベント";
+"profile.settings.newsletter.publishing" = "Kickstarter Reads";
 "profile.settings.newsletter.title" = "ニュースレター";
 "profile.settings.newsletter.weekly" = "Projects We Love";
 "profile.settings.rating.message" = "Kickstarterアプリの使い心地はいかがですか？\nぜひ評価をお聞かせください！";
@@ -1277,3 +1297,6 @@
 "updates_count_updates.one" = "%{updates_count} 件のアップデート";
 "updates_count_updates.two" = "%{updates_count} 件のアップデート";
 "updates_count_updates.zero" = "%{updates_count} 件のアップデート";
+"via_custom" = "リファラー経由";
+"via_external" = "外部を経由";
+"via_kickstarter" = "kickstarterを経由";

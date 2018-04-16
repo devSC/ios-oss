@@ -6,7 +6,7 @@ import Prelude
 public struct DiscoveryParams {
 
   public private(set) var backed: Bool?
-  public private(set) var category: RootCategoriesEnvelope.Category?
+  public private(set) var category: Category?
   public private(set) var collaborated: Bool?
   public private(set) var created: Bool?
   public private(set) var hasLiveStreams: Bool?
@@ -38,7 +38,8 @@ public struct DiscoveryParams {
     case popular = "popularity"
   }
 
-  public static let defaults = DiscoveryParams(backed: nil, category: nil, collaborated: nil, created: nil,
+  public static let defaults = DiscoveryParams(backed: nil, category: nil,
+                                               collaborated: nil, created: nil,
                                                hasLiveStreams: nil, hasVideo: nil, includePOTD: nil,
                                                page: nil, perPage: nil, query: nil, recommended: nil,
                                                seed: nil, similarTo: nil, social: nil, sort: nil,
@@ -91,11 +92,9 @@ extension DiscoveryParams: CustomStringConvertible, CustomDebugStringConvertible
 
 extension DiscoveryParams: Argo.Decodable {
   public static func decode(_ json: JSON) -> Decoded<DiscoveryParams> {
-    let create = curry(DiscoveryParams.init)
-
-    let tmp1 = create
+    let tmp1 = curry(DiscoveryParams.init)
       <^> ((json <|? "backed" >>- stringIntToBool) as Decoded<Bool?>)
-      <*> ((json <|? "category" >>- decodeToGraphCategory) as Decoded<RootCategoriesEnvelope.Category>)
+      <*> ((json <|? "category" >>- decodeToGraphCategory) as Decoded<Category>)
       <*> ((json <|? "collaborated" >>- stringToBool) as Decoded<Bool?>)
       <*> ((json <|? "created" >>- stringToBool) as Decoded<Bool?>)
     let tmp2 = tmp1
@@ -144,14 +143,14 @@ private func stringIntToBool(_ string: String?) -> Decoded<Bool?> {
     .coalesceWith(.failure(.custom("Could not parse string into bool.")))
 }
 
-private func decodeToGraphCategory(_ json: JSON?) -> Decoded<RootCategoriesEnvelope.Category> {
+private func decodeToGraphCategory(_ json: JSON?) -> Decoded<Category> {
 
   guard let jsonObj = json else {
-    return .success(RootCategoriesEnvelope.Category(id: "-1", name: "Unknown Category"))
+    return .success(Category(id: "-1", name: "Unknown Category"))
   }
   switch jsonObj {
   case .object(let dic):
-    let category = RootCategoriesEnvelope.Category(id: categoryInfo(dic)?.0 ?? "",
+    let category = Category(id: categoryInfo(dic)?.0 ?? "",
                                                    name: categoryInfo(dic)?.1 ?? "")
     return .success(category)
   default:

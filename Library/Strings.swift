@@ -558,6 +558,23 @@ backers"
     )
   }
   /**
+   "Bookmarks"
+
+   - **es**: "Marcadores"
+   - **ja**: "ブックマーク"
+   - **de**: "Bookmarks"
+   - **fr**: "Signets"
+   - **en**: "Bookmarks"
+  */
+  public static func Bookmarks() -> String {
+    return localizedString(
+      key: "Bookmarks",
+      defaultValue: "Bookmarks",
+      count: nil,
+      substitutions: [:]
+    )
+  }
+  /**
    "Bring creative projects to life."
 
    - **es**: "Dale vida a proyectos creativos."
@@ -1085,6 +1102,23 @@ backers"
     )
   }
   /**
+   "Data will appear here once somebody backs your project."
+
+   - **es**: "Los datos aparecerán aquí una vez que alguien patrocine tu proyecto."
+   - **ja**: "誰かがプロジェクトをバック（支援）すると、ここにデータが表示されます。"
+   - **de**: "Info wird hier angezeigt, sobald jemand dein Projekt unterstützt."
+   - **fr**: "Ces données seront visibles dès que vous aurez reçu votre première contribution."
+   - **en**: "Data will appear here once somebody backs your project."
+  */
+  public static func Data_will_appear_here_once() -> String {
+    return localizedString(
+      key: "Data_will_appear_here_once",
+      defaultValue: "Data will appear here once somebody backs your project.",
+      count: nil,
+      substitutions: [:]
+    )
+  }
+  /**
    "Delivered"
 
    - **es**: "Entregado"
@@ -1267,6 +1301,23 @@ backers"
     return localizedString(
       key: "Expands_subcategories",
       defaultValue: "Expands subcategories.",
+      count: nil,
+      substitutions: [:]
+    )
+  }
+  /**
+   "Explore"
+
+   - **es**: "Explora"
+   - **ja**: "さがす"
+   - **de**: "Erkunden"
+   - **fr**: "Explorer"
+   - **en**: "Explore"
+  */
+  public static func Explore() -> String {
+    return localizedString(
+      key: "Explore",
+      defaultValue: "Explore",
       count: nil,
       substitutions: [:]
     )
@@ -2088,6 +2139,23 @@ backers"
     )
   }
   /**
+   "How backers found your project"
+
+   - **es**: "Cómo encontraron tu proyecto los patrocinadores"
+   - **ja**: "バッカ―があなたのプロジェクトを見つけた経緯"
+   - **de**: "Wie Unterstützer dein Projekt gefunden haben"
+   - **fr**: "Comment les contributeurs ont découvert votre projet"
+   - **en**: "How backers found your project"
+  */
+  public static func How_backers_found_your_project() -> String {
+    return localizedString(
+      key: "How_backers_found_your_project",
+      defaultValue: "How backers found your project",
+      count: nil,
+      substitutions: [:]
+    )
+  }
+  /**
    "I’d just like to support the project."
 
    - **es**: "Sólo quiero apoyar este proyecto."
@@ -2631,6 +2699,23 @@ with friends."
       defaultValue: "Message %{user_name}…",
       count: nil,
       substitutions: ["user_name": user_name]
+    )
+  }
+  /**
+   "Name"
+
+   - **es**: "Nombre"
+   - **ja**: "Name"
+   - **de**: "Name"
+   - **fr**: "Nom"
+   - **en**: "Name"
+  */
+  public static func Name() -> String {
+    return localizedString(
+      key: "Name",
+      defaultValue: "Name",
+      count: nil,
+      substitutions: [:]
     )
   }
   /**
@@ -3232,6 +3317,23 @@ from friends yet."
     )
   }
   /**
+   "Pledge activity"
+
+   - **es**: "Actividad de contribución"
+   - **ja**: "プレッジ"
+   - **de**: "Finanzierungsbeiträge"
+   - **fr**: "Mes engagements"
+   - **en**: "Pledge activity"
+  */
+  public static func Pledge_activity() -> String {
+    return localizedString(
+      key: "Pledge_activity",
+      defaultValue: "Pledge activity",
+      count: nil,
+      substitutions: [:]
+    )
+  }
+  /**
    "Pledge any amount to help bring this project to life."
 
    - **es**: "Puedes contribuir un monto de libre selección para apoyar este proyecto."
@@ -3453,6 +3555,23 @@ from friends yet."
     )
   }
   /**
+   "Projects you've backed"
+
+   - **es**: "Proyectos que has patrocinado"
+   - **ja**: "バック（支援）したプロジェクト"
+   - **de**: "Projekte, die du unterstützt hast"
+   - **fr**: "Les projets que j'ai soutenus"
+   - **en**: "Projects you've backed"
+  */
+  public static func Projects_youve_backed() -> String {
+    return localizedString(
+      key: "Projects_youve_backed",
+      defaultValue: "Projects you've backed",
+      count: nil,
+      substitutions: [:]
+    )
+  }
+  /**
    "Projects you've launched"
 
    - **es**: "Proyectos que has publicado"
@@ -3543,7 +3662,7 @@ daring ideas."
   /**
    "Read more about the campaign"
 
-   - **es**: "Leer más sobre esta campaña"
+   - **es**: "Leer más sobre la campaña"
    - **ja**: "キャンペーンの詳細をみる"
    - **de**: "Mehr über diese Kampagne lesen"
    - **fr**: "En savoir plus sur la campagne"
@@ -3779,6 +3898,23 @@ daring ideas."
     )
   }
   /**
+   "Reward delivered?"
+
+   - **es**: "¿Recompensa entregada?"
+   - **ja**: "リワードを受け取りましたか？"
+   - **de**: "Belohnung versandt?"
+   - **fr**: "Récompense livrée ?"
+   - **en**: "Reward delivered?"
+  */
+  public static func Reward_delivered() -> String {
+    return localizedString(
+      key: "Reward_delivered",
+      defaultValue: "Reward delivered?",
+      count: nil,
+      substitutions: [:]
+    )
+  }
+  /**
    "<b>Reward</b> estimated for delivery in %{delivery_date}"
 
    - **es**: "<b>Recompensa</b> estimada para entregarse en %{delivery_date}"
@@ -3966,6 +4102,40 @@ daring ideas."
     )
   }
   /**
+   "See all %{category_name} projects"
+
+   - **es**: "Ver todos los proyectos de %{category_name}"
+   - **ja**: "%{category_name} プロジェクトをすべて見る"
+   - **de**: "Alle %{category_name}-Projekte anzeigen"
+   - **fr**: "Tous les projets de la catégorie %{category_name}"
+   - **en**: "See all %{category_name} projects"
+  */
+  public static func See_all_category_name_projects(category_name: String) -> String {
+    return localizedString(
+      key: "See_all_category_name_projects",
+      defaultValue: "See all %{category_name} projects",
+      count: nil,
+      substitutions: ["category_name": category_name]
+    )
+  }
+  /**
+   "Select another project"
+
+   - **es**: "Selecciona otro proyecto"
+   - **ja**: "他のプロジェクトを選ぶ"
+   - **de**: "Wähle ein anderes Projekt aus"
+   - **fr**: "Sélectionner un autre projet"
+   - **en**: "Select another project"
+  */
+  public static func Select_another_project() -> String {
+    return localizedString(
+      key: "Select_another_project",
+      defaultValue: "Select another project",
+      count: nil,
+      substitutions: [:]
+    )
+  }
+  /**
    "Select this reward"
 
    - **es**: "Seleccionar esta recompensa"
@@ -4019,10 +4189,10 @@ daring ideas."
   /**
    "Share"
 
-   - **es**: "Share"
+   - **es**: "Compartir"
    - **ja**: "シェア"
-   - **de**: "Share"
-   - **fr**: "Share"
+   - **de**: "Teilen"
+   - **fr**: "Partager"
    - **en**: "Share"
   */
   public static func Share() -> String {
@@ -4563,6 +4733,23 @@ catch your eye?"
     )
   }
   /**
+   "This project will only be funded on if at least %{amount} is pledged by %{date}."
+
+   - **es**: "Este proyecto sólo será financiado si se contribuye al menos un monto de %{amount} antes del %{date}."
+   - **ja**: "このプロジェクトは%{date} までに、少なくとも%{amount}プレッジされるでしょう。"
+   - **de**: "Dieses Projekt wird nur finanziert, wenn bis am %{date} Unterstützungsbeiträge von mindestens %{amount} geleistet werden."
+   - **fr**: "Ce projet ne sera financé que si au moins %{amount} sont engagés d'ici le %{date}."
+   - **en**: "This project will only be funded on if at least %{amount} is pledged by %{date}."
+  */
+  public static func This_project_will_only_be_funded_on_if_at_least_amount_is_pledged_by_date(amount: String, date: String) -> String {
+    return localizedString(
+      key: "This_project_will_only_be_funded_on_if_at_least_amount_is_pledged_by_date",
+      defaultValue: "This project will only be funded on if at least %{amount} is pledged by %{date}.",
+      count: nil,
+      substitutions: ["amount": amount, "date": date]
+    )
+  }
+  /**
    "%{time_left} left"
 
    - **es**: "%{time_left} restantes"
@@ -4614,6 +4801,23 @@ catch your eye?"
     )
   }
   /**
+   "To see all rewards, view your project."
+
+   - **es**: "Para ver todas las recompensas, revisa tu proyecto."
+   - **ja**: "すべてのリワードを確認するには、プロジェクトをご覧ください。"
+   - **de**: "Um alle Belohnungen zu sehen, gehe zu deinem Projekt."
+   - **fr**: "Accéder à votre projet pour voir toutes vos récompenses"
+   - **en**: "To see all rewards, view your project."
+  */
+  public static func To_see_all_rewards_view_your_project() -> String {
+    return localizedString(
+      key: "To_see_all_rewards_view_your_project",
+      defaultValue: "To see all rewards, view your project.",
+      count: nil,
+      substitutions: [:]
+    )
+  }
+  /**
    "Toggle saving this project"
 
    - **es**: "Guardar/No guardar este proyecto"
@@ -4626,6 +4830,57 @@ catch your eye?"
     return localizedString(
       key: "Toggle_saving_this_project",
       defaultValue: "Toggle saving this project",
+      count: nil,
+      substitutions: [:]
+    )
+  }
+  /**
+   "Top pledge sources"
+
+   - **es**: "Principales fuentes de contribución"
+   - **ja**: "プレッジソースのトップ"
+   - **de**: "Woher deine Unterstützungen kommen"
+   - **fr**: "Vos principales sources de contributions"
+   - **en**: "Top pledge sources"
+  */
+  public static func Top_pledge_sources() -> String {
+    return localizedString(
+      key: "Top_pledge_sources",
+      defaultValue: "Top pledge sources",
+      count: nil,
+      substitutions: [:]
+    )
+  }
+  /**
+   "Top 10 pledge sources"
+
+   - **es**: "Las 10 principales fuentes de contribución"
+   - **ja**: "プレッジソースのトップ10"
+   - **de**: "Top 10 Quellen deiner Beiträge"
+   - **fr**: "Vos 10 principales sources de contributions"
+   - **en**: "Top 10 pledge sources"
+  */
+  public static func Top_ten_pledge_sources() -> String {
+    return localizedString(
+      key: "Top_ten_pledge_sources",
+      defaultValue: "Top 10 pledge sources",
+      count: nil,
+      substitutions: [:]
+    )
+  }
+  /**
+   "Top 10 rewards"
+
+   - **es**: "Las 10 mejores recompensas"
+   - **ja**: "リワードのトップ10"
+   - **de**: "Top 10-Belohnungen"
+   - **fr**: "Les 10 récompenses qui ont le plus de succès"
+   - **en**: "Top 10 rewards"
+  */
+  public static func Top_ten_rewards() -> String {
+    return localizedString(
+      key: "Top_ten_rewards",
+      defaultValue: "Top 10 rewards",
       count: nil,
       substitutions: [:]
     )
@@ -4835,6 +5090,23 @@ catch your eye?"
     )
   }
   /**
+   "Use this to keep track of which rewards you've received."
+
+   - **es**: "Aquí puedes ver las recompensas recibidas."
+   - **ja**: "受け取ったリワードを確認するにはこちらをご利用ください。"
+   - **de**: "Hier kannst du nachverfolgen, welche Belohnungen du bereits erhalten hast."
+   - **fr**: "Utilisez cette fonction pour garder une trace des récompenses que vous avez reçues."
+   - **en**: "Use this to keep track of which rewards you've received."
+  */
+  public static func Use_this_to_keep_track_of_which_rewards_youve_received() -> String {
+    return localizedString(
+      key: "Use_this_to_keep_track_of_which_rewards_youve_received",
+      defaultValue: "Use this to keep track of which rewards you've received.",
+      count: nil,
+      substitutions: [:]
+    )
+  }
+  /**
    "Video disabled until the internet connection improves"
 
    - **es**: "Video desactivado hasta se reestablezca la conexión de internet"
@@ -4864,6 +5136,23 @@ catch your eye?"
     return localizedString(
       key: "View",
       defaultValue: "View",
+      count: nil,
+      substitutions: [:]
+    )
+  }
+  /**
+   "View project"
+
+   - **es**: "Ver proyecto"
+   - **ja**: "プロジェクトを見る"
+   - **de**: "Projekt ansehen"
+   - **fr**: "Afficher le projet"
+   - **en**: "View project"
+  */
+  public static func View_project() -> String {
+    return localizedString(
+      key: "View_project",
+      defaultValue: "View project",
       count: nil,
       substitutions: [:]
     )
@@ -6664,7 +6953,7 @@ Please try again later."
 
    - **es**: "de %{goal}"
    - **ja**: "達成額 (%{goal} 中)"
-   - **de**: "von %{goal} beigetragen"
+   - **de**: "von %{goal}"
    - **fr**: "sur %{goal}"
    - **en**: "pledged of %{goal}"
   */
@@ -6867,7 +7156,7 @@ Please try again later."
    "Backer #%{backer_number}"
 
    - **es**: "Patrocinador n° %{backer_number}"
-   - **ja**: "バッカー数 %{backer_number}"
+   - **ja**: "バッカーナンバー %{backer_number}"
    - **de**: "Unterstützer Nr. %{backer_number}"
    - **fr**: "Contributeur no. %{backer_number}"
    - **en**: "Backer #%{backer_number}"
@@ -7777,6 +8066,23 @@ Please try again later."
     return localizedString(
       key: "dashboard.buttons.post_update",
       defaultValue: "Post update",
+      count: nil,
+      substitutions: [:]
+    )
+  }
+  /**
+   "Project"
+
+   - **es**: "Proyecto"
+   - **ja**: "プロジェクト"
+   - **de**: "Projekt"
+   - **fr**: "Projet"
+   - **en**: "Project"
+  */
+  public static func dashboard_buttons_project() -> String {
+    return localizedString(
+      key: "dashboard.buttons.project",
+      defaultValue: "Project",
       count: nil,
       substitutions: [:]
     )
@@ -14242,6 +14548,23 @@ Let's change that!"
     )
   }
   /**
+   "Kickstarter Films"
+
+   - **es**: "Kickstarter Films"
+   - **ja**: "Kickstarter Films"
+   - **de**: "Kickstarter Films"
+   - **fr**: "Kickstarter Films"
+   - **en**: "Kickstarter Films"
+  */
+  public static func profile_settings_newsletter_film() -> String {
+    return localizedString(
+      key: "profile.settings.newsletter.film",
+      defaultValue: "Kickstarter Films",
+      count: nil,
+      substitutions: [:]
+    )
+  }
+  /**
    "Kickstarter Loves Games"
 
    - **es**: "Nos encantan los juegos"
@@ -14339,6 +14662,23 @@ Let's change that!"
     return localizedString(
       key: "profile.settings.newsletter.promo",
       defaultValue: "Kickstarter News and Events",
+      count: nil,
+      substitutions: [:]
+    )
+  }
+  /**
+   "Kickstarter Reads"
+
+   - **es**: "Kickstarter Reads"
+   - **ja**: "Kickstarter Reads"
+   - **de**: "Kickstarter Reads"
+   - **fr**: "Kickstarter Reads"
+   - **en**: "Kickstarter Reads"
+  */
+  public static func profile_settings_newsletter_publishing() -> String {
+    return localizedString(
+      key: "profile.settings.newsletter.publishing",
+      defaultValue: "Kickstarter Reads",
       count: nil,
       substitutions: [:]
     )
@@ -18039,6 +18379,57 @@ saved"
       defaultValue: "%{updates_count} updates",
       count: updates_count,
       substitutions: ["updates_count": Format.wholeNumber(updates_count)]
+    )
+  }
+  /**
+   "via custom"
+
+   - **es**: "a través de personalizados"
+   - **ja**: "リファラー経由"
+   - **de**: "Benutzerdefiniert"
+   - **fr**: "sites référents personnalisés"
+   - **en**: "via custom"
+  */
+  public static func via_custom() -> String {
+    return localizedString(
+      key: "via_custom",
+      defaultValue: "via custom",
+      count: nil,
+      substitutions: [:]
+    )
+  }
+  /**
+   "via external"
+
+   - **es**: "a través de externos"
+   - **ja**: "外部を経由"
+   - **de**: "Extern"
+   - **fr**: "sites référents externes"
+   - **en**: "via external"
+  */
+  public static func via_external() -> String {
+    return localizedString(
+      key: "via_external",
+      defaultValue: "via external",
+      count: nil,
+      substitutions: [:]
+    )
+  }
+  /**
+   "via Kickstarter"
+
+   - **es**: "a través de Kickstarter"
+   - **ja**: "kickstarterを経由"
+   - **de**: "über Kickstarter"
+   - **fr**: "Kickstarter"
+   - **en**: "via Kickstarter"
+  */
+  public static func via_kickstarter() -> String {
+    return localizedString(
+      key: "via_kickstarter",
+      defaultValue: "via Kickstarter",
+      count: nil,
+      substitutions: [:]
     )
   }
 }
